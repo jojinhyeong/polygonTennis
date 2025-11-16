@@ -487,45 +487,25 @@ const createDoubleBracket = (players) => {
 <style scoped>
 .bracket-tab {
   width: 100%;
-  animation: fadeInUp 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .bracket-controls {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
   border-radius: 24px;
-  padding: 2rem 1.5rem;
-  margin-bottom: 2rem;
+  padding: 1.25rem 1rem;
+  margin-bottom: 1rem;
   box-shadow: 
-    0 8px 32px rgba(167, 139, 250, 0.12),
+    0 8px 32px rgba(76, 175, 80, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.2);
   backdrop-filter: blur(20px);
   position: relative;
   overflow: hidden;
 }
 
 .bracket-controls::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #a78bfa 0%, #34d399 50%, #a78bfa 100%);
-  background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
+  display: none;
 }
 
 @keyframes shimmer {
@@ -540,23 +520,23 @@ const createDoubleBracket = (players) => {
 .controls-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(167, 139, 250, 0.1);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid rgba(76, 175, 80, 0.1);
 }
 
 .header-icon {
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
-  border-radius: 16px;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   box-shadow: 
-    0 8px 24px rgba(167, 139, 250, 0.4),
+    0 8px 24px rgba(76, 175, 80, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   position: relative;
   overflow: hidden;
@@ -584,12 +564,9 @@ const createDoubleBracket = (players) => {
 }
 
 .controls-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #2E7D32;
   margin: 0;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   letter-spacing: -0.02em;
@@ -598,7 +575,7 @@ const createDoubleBracket = (players) => {
 .controls-body {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .control-group {
@@ -619,10 +596,10 @@ const createDoubleBracket = (players) => {
 }
 
 .control-label svg {
-  color: #a78bfa;
+  color: #4CAF50;
   width: 20px;
   height: 20px;
-  filter: drop-shadow(0 2px 4px rgba(167, 139, 250, 0.3));
+  filter: drop-shadow(0 2px 4px rgba(76, 175, 80, 0.3));
 }
 
 .select-wrapper {
@@ -634,7 +611,7 @@ const createDoubleBracket = (players) => {
 .select-input {
   width: 100%;
   padding: 1rem 1.25rem;
-  border: 2px solid rgba(167, 139, 250, 0.2);
+  border: 2px solid rgba(76, 175, 80, 0.2);
   border-radius: 14px;
   font-size: 0.95rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
@@ -652,7 +629,7 @@ const createDoubleBracket = (players) => {
   background-position: right 1.25rem center;
   padding-right: 3.5rem;
   box-shadow: 
-    0 2px 8px rgba(167, 139, 250, 0.1),
+    0 2px 8px rgba(76, 175, 80, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   position: relative;
 }
@@ -670,47 +647,47 @@ const createDoubleBracket = (players) => {
 }
 
 .select-input option:hover {
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(52, 211, 153, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
   color: #1f2937;
 }
 
 .select-input option:checked,
 .select-input option:focus {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   font-weight: 600;
 }
 
 .select-input:focus {
   z-index: 100;
-  border-color: #a78bfa;
+  border-color: #4CAF50;
 }
 
 .select-input:hover {
-  border-color: rgba(167, 139, 250, 0.4);
+  border-color: rgba(76, 175, 80, 0.4);
   box-shadow: 
-    0 4px 12px rgba(167, 139, 250, 0.15),
+    0 4px 12px rgba(76, 175, 80, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   transform: translateY(-1px);
 }
 
 .select-input:focus {
-  border-color: #a78bfa;
+  border-color: #4CAF50;
   box-shadow: 
-    0 0 0 4px rgba(167, 139, 250, 0.2),
-    0 4px 16px rgba(167, 139, 250, 0.2),
+    0 0 0 4px rgba(76, 175, 80, 0.2),
+    0 4px 16px rgba(76, 175, 80, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   transform: translateY(-1px);
 }
 
 .generate-btn {
   width: 100%;
-  padding: 1.125rem 1.75rem;
-  font-size: 1rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.95rem;
   font-weight: 700;
   border: none;
   border-radius: 16px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -719,12 +696,12 @@ const createDoubleBracket = (players) => {
   justify-content: center;
   gap: 0.75rem;
   box-shadow: 
-    0 8px 24px rgba(167, 139, 250, 0.4),
+    0 8px 24px rgba(76, 175, 80, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  min-height: 52px;
+  min-height: 48px;
   position: relative;
   overflow: hidden;
   text-transform: uppercase;
@@ -749,14 +726,14 @@ const createDoubleBracket = (players) => {
 .generate-btn:hover {
   transform: translateY(-3px);
   box-shadow: 
-    0 12px 32px rgba(167, 139, 250, 0.5),
+    0 12px 32px rgba(76, 175, 80, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .generate-btn:active {
   transform: translateY(-1px);
   box-shadow: 
-    0 6px 20px rgba(167, 139, 250, 0.4),
+    0 6px 20px rgba(76, 175, 80, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -771,11 +748,11 @@ const createDoubleBracket = (players) => {
   border-radius: 20px;
   padding: 1.5rem;
   box-shadow: 
-    0 20px 60px rgba(167, 139, 250, 0.15),
+    0 20px 60px rgba(76, 175, 80, 0.15),
     0 8px 24px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(167, 139, 250, 0.1);
-  border: 2px solid rgba(167, 139, 250, 0.25);
+    inset 0 -1px 0 rgba(76, 175, 80, 0.1);
+  border: 2px solid rgba(76, 175, 80, 0.25);
   backdrop-filter: blur(30px);
   overflow: visible;
   position: relative;
@@ -783,16 +760,7 @@ const createDoubleBracket = (players) => {
 }
 
 .brackets-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #a78bfa 0%, #34d399 50%, #a78bfa 100%);
-  background-size: 200% 100%;
-  border-radius: 20px 20px 0 0;
-  animation: shimmerTop 3s ease-in-out infinite;
+  display: none;
 }
 
 .brackets-container::after {
@@ -803,8 +771,8 @@ const createDoubleBracket = (players) => {
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 30%, rgba(167, 139, 250, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(52, 211, 153, 0.06) 0%, transparent 50%);
+    radial-gradient(circle at 20% 30%, rgba(76, 175, 80, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(102, 187, 106, 0.06) 0%, transparent 50%);
   border-radius: 20px;
   pointer-events: none;
   z-index: 0;
@@ -836,7 +804,7 @@ const createDoubleBracket = (players) => {
   margin-bottom: 1.75rem;
   flex-wrap: wrap;
   padding-bottom: 1.25rem;
-  border-bottom: 2px solid rgba(167, 139, 250, 0.2);
+  border-bottom: 2px solid rgba(76, 175, 80, 0.2);
   position: relative;
   z-index: 1;
 }
@@ -848,13 +816,13 @@ const createDoubleBracket = (players) => {
   left: 0;
   width: 100%;
   height: 2px;
-  background: linear-gradient(90deg, transparent 0%, rgba(167, 139, 250, 0.3) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(76, 175, 80, 0.3) 50%, transparent 100%);
 }
 
 .group-tab {
   padding: 0.75rem 1.25rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.9) 100%);
-  border: 2px solid rgba(167, 139, 250, 0.25);
+  border: 2px solid rgba(76, 175, 80, 0.25);
   border-radius: 12px;
   font-weight: 700;
   font-size: 0.85rem;
@@ -865,7 +833,7 @@ const createDoubleBracket = (players) => {
   position: relative;
   overflow: hidden;
   box-shadow: 
-    0 2px 8px rgba(167, 139, 250, 0.1),
+    0 2px 8px rgba(76, 175, 80, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   letter-spacing: -0.01em;
   touch-action: manipulation;
@@ -880,7 +848,7 @@ const createDoubleBracket = (players) => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
   transition: left 0.5s ease;
 }
 
@@ -889,22 +857,22 @@ const createDoubleBracket = (players) => {
 }
 
 .group-tab:hover {
-  border-color: rgba(167, 139, 250, 0.4);
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(52, 211, 153, 0.1) 100%);
+  border-color: rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
   transform: translateY(-1px);
   box-shadow: 
-    0 4px 16px rgba(167, 139, 250, 0.2),
+    0 4px 16px rgba(76, 175, 80, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
   color: #1f2937;
 }
 
 .group-tab.active {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   border-color: transparent;
   color: white;
   box-shadow: 
-    0 6px 20px rgba(167, 139, 250, 0.4),
-    0 2px 8px rgba(52, 211, 153, 0.3),
+    0 6px 20px rgba(76, 175, 80, 0.4),
+    0 2px 8px rgba(102, 187, 106, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
   font-weight: 800;
@@ -939,29 +907,29 @@ const createDoubleBracket = (players) => {
 .empty-state {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
   border-radius: 24px;
-  padding: 3rem 2rem;
+  padding: 2rem 1.5rem;
   text-align: center;
   box-shadow: 
-    0 8px 32px rgba(167, 139, 250, 0.12),
+    0 8px 32px rgba(76, 175, 80, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.2);
   backdrop-filter: blur(20px);
   animation: fadeInUp 0.6s ease-out;
 }
 
 .empty-icon {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 2rem;
-  border-radius: 24px;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.2) 0%, rgba(52, 211, 153, 0.2) 100%);
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(102, 187, 106, 0.2) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a78bfa;
+  color: #4CAF50;
   box-shadow: 
-    0 8px 24px rgba(167, 139, 250, 0.2),
+    0 8px 24px rgba(76, 175, 80, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
   animation: pulse 2s ease-in-out infinite;
 }
@@ -978,22 +946,22 @@ const createDoubleBracket = (players) => {
 }
 
 .empty-state h3 {
-  font-size: 1.375rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.5rem 0;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   letter-spacing: -0.02em;
 }
 
 .empty-state p {
   color: #6b7280;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
   font-weight: 500;
 }
 
@@ -1097,18 +1065,19 @@ const createDoubleBracket = (players) => {
   border-radius: 28px;
   width: 100%;
   max-width: 680px;
-  max-height: 90vh;
-  margin: 1rem auto;
+  height: calc(100vh - 2rem);
+  max-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
   box-shadow: 
     0 24px 80px rgba(0, 0, 0, 0.4),
-    0 8px 24px rgba(167, 139, 250, 0.2),
+    0 8px 24px rgba(76, 175, 80, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.2);
   backdrop-filter: blur(20px);
   animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 @keyframes modalSlideIn {
@@ -1126,23 +1095,15 @@ const createDoubleBracket = (players) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.75rem 2rem;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(52, 211, 153, 0.1) 100%);
-  border-bottom: 2px solid rgba(167, 139, 250, 0.15);
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
+  border-bottom: 2px solid rgba(76, 175, 80, 0.15);
   flex-shrink: 0;
   position: relative;
 }
 
 .modal-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #a78bfa 0%, #34d399 50%, #a78bfa 100%);
-  background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
+  display: none;
 }
 
 .modal-header-content {
@@ -1154,30 +1115,27 @@ const createDoubleBracket = (players) => {
 .modal-icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 6px 20px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #2E7D32;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   letter-spacing: -0.02em;
 }
 
 .modal-subtitle {
   margin: 0.25rem 0 0 0;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: #6b7280;
   font-weight: 500;
 }
@@ -1186,7 +1144,7 @@ const createDoubleBracket = (players) => {
   width: 40px;
   height: 40px;
   border: none;
-  background: rgba(167, 139, 250, 0.1);
+  background: rgba(76, 175, 80, 0.1);
   border-radius: 12px;
   cursor: pointer;
   display: flex;
@@ -1199,55 +1157,38 @@ const createDoubleBracket = (players) => {
 }
 
 .modal-close-btn:hover {
-  background: rgba(167, 139, 250, 0.2);
-  color: #a78bfa;
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
   transform: rotate(90deg);
 }
 
 .modal-body {
-  padding: 2rem;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
-.modal-body::-webkit-scrollbar {
-  width: 8px;
-}
-
-.modal-body::-webkit-scrollbar-track {
-  background: rgba(167, 139, 250, 0.1);
-  border-radius: 4px;
-}
-
-.modal-body::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
-  border-radius: 4px;
-}
-
-.modal-body::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #8b5cf6 0%, #10b981 100%);
-}
 
 .modal-info-card {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.08) 0%, rgba(52, 211, 153, 0.08) 100%);
+  padding: 0.875rem 1rem;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(102, 187, 106, 0.08) 100%);
   border-radius: 14px;
-  border: 1px solid rgba(167, 139, 250, 0.2);
-  margin-bottom: 1.5rem;
-  font-size: 0.875rem;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
   color: #4b5563;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .modal-info-card svg {
-  color: #a78bfa;
+  color: #4CAF50;
   flex-shrink: 0;
 }
 
@@ -1257,9 +1198,9 @@ const createDoubleBracket = (players) => {
   padding: 1.5rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
   border-radius: 20px;
-  border: 2px solid rgba(167, 139, 250, 0.2);
+  border: 2px solid rgba(76, 175, 80, 0.2);
   box-shadow: 
-    0 8px 32px rgba(167, 139, 250, 0.12),
+    0 8px 32px rgba(76, 175, 80, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
@@ -1292,12 +1233,12 @@ const createDoubleBracket = (players) => {
 }
 
 .teams-list-outside::-webkit-scrollbar-track {
-  background: rgba(167, 139, 250, 0.1);
+  background: rgba(76, 175, 80, 0.1);
   border-radius: 3px;
 }
 
 .teams-list-outside::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   border-radius: 3px;
 }
 
@@ -1306,16 +1247,16 @@ const createDoubleBracket = (players) => {
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.05) 0%, rgba(52, 211, 153, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.05) 100%);
   border-radius: 14px;
-  border: 2px solid rgba(167, 139, 250, 0.15);
+  border: 2px solid rgba(76, 175, 80, 0.15);
   transition: all 0.3s ease;
 }
 
 .team-preview-item-outside:hover {
-  border-color: rgba(167, 139, 250, 0.3);
+  border-color: rgba(76, 175, 80, 0.3);
   transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.15);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
 }
 
 .preview-header {
@@ -1348,22 +1289,22 @@ const createDoubleBracket = (players) => {
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.05) 0%, rgba(52, 211, 153, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.05) 100%);
   border-radius: 14px;
-  border: 2px solid rgba(167, 139, 250, 0.15);
+  border: 2px solid rgba(76, 175, 80, 0.15);
   transition: all 0.3s ease;
 }
 
 .team-preview-item:hover {
-  border-color: rgba(167, 139, 250, 0.3);
+  border-color: rgba(76, 175, 80, 0.3);
   transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.15);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
 }
 
 .team-number-badge {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   border-radius: 10px;
   display: flex;
@@ -1371,7 +1312,7 @@ const createDoubleBracket = (players) => {
   justify-content: center;
   font-weight: 800;
   font-size: 0.875rem;
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   flex-shrink: 0;
 }
 
@@ -1395,12 +1336,15 @@ const createDoubleBracket = (players) => {
 }
 
 .team-separator {
-  color: #a78bfa;
+  color: #4CAF50;
   font-weight: 700;
 }
 
 .player-section {
-  margin-bottom: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .player-section-header {
@@ -1408,10 +1352,11 @@ const createDoubleBracket = (players) => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1rem;
+  flex-shrink: 0;
 }
 
 .player-section-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: #1f2937;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -1419,10 +1364,10 @@ const createDoubleBracket = (players) => {
 }
 
 .player-count {
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #a78bfa;
-  background: rgba(167, 139, 250, 0.1);
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
   padding: 0.375rem 0.75rem;
   border-radius: 8px;
 }
@@ -1431,14 +1376,14 @@ const createDoubleBracket = (players) => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 0.75rem;
-  max-height: 400px;
+  flex: 1;
   overflow-y: auto;
   padding: 1rem;
   background: linear-gradient(135deg, rgba(249, 250, 251, 0.8) 0%, rgba(243, 244, 246, 0.8) 100%);
   border-radius: 16px;
-  border: 2px solid rgba(167, 139, 250, 0.15);
-  margin-bottom: 1.25rem;
+  border: 2px solid rgba(76, 175, 80, 0.15);
   -webkit-overflow-scrolling: touch;
+  min-height: 0;
 }
 
 .player-list-grid::-webkit-scrollbar {
@@ -1446,12 +1391,12 @@ const createDoubleBracket = (players) => {
 }
 
 .player-list-grid::-webkit-scrollbar-track {
-  background: rgba(167, 139, 250, 0.1);
+  background: rgba(76, 175, 80, 0.1);
   border-radius: 4px;
 }
 
 .player-list-grid::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   border-radius: 4px;
 }
 
@@ -1461,11 +1406,11 @@ const createDoubleBracket = (players) => {
 
 .player-chip {
   padding: 0.875rem 1rem;
-  border: 2px solid rgba(167, 139, 250, 0.2);
+  border: 2px solid rgba(76, 175, 80, 0.2);
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
   color: #374151;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1485,18 +1430,18 @@ const createDoubleBracket = (players) => {
 }
 
 .player-chip:hover {
-  border-color: rgba(167, 139, 250, 0.5);
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(52, 211, 153, 0.1) 100%);
+  border-color: rgba(76, 175, 80, 0.5);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(167, 139, 250, 0.2);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.2);
 }
 
 .player-chip.selected {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   border-color: transparent;
   box-shadow: 
-    0 8px 24px rgba(167, 139, 250, 0.4),
+    0 8px 24px rgba(76, 175, 80, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   font-weight: 700;
   transform: translateY(-2px);
@@ -1546,12 +1491,15 @@ const createDoubleBracket = (players) => {
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
+  flex-shrink: 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(76, 175, 80, 0.1);
 }
 
 .clear-btn {
   flex: 1;
   padding: 1rem 1.5rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   border: 2px solid rgba(239, 68, 68, 0.3);
   border-radius: 14px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
@@ -1590,7 +1538,7 @@ const createDoubleBracket = (players) => {
   font-size: 1rem;
   border: none;
   border-radius: 14px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
   font-weight: 800;
@@ -1600,14 +1548,13 @@ const createDoubleBracket = (players) => {
   min-height: 52px;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   box-shadow: 
-    0 8px 24px rgba(167, 139, 250, 0.4),
+    0 8px 24px rgba(76, 175, 80, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   position: relative;
   overflow: hidden;
 }
@@ -1630,7 +1577,7 @@ const createDoubleBracket = (players) => {
 .generate-bracket-btn:hover:not(:disabled) {
   transform: translateY(-3px);
   box-shadow: 
-    0 12px 32px rgba(167, 139, 250, 0.5),
+    0 12px 32px rgba(76, 175, 80, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -1664,6 +1611,24 @@ const createDoubleBracket = (players) => {
 }
 
 @media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .modal-content {
+    height: calc(100vh - 1rem);
+    max-height: calc(100vh - 1rem);
+    width: calc(100% - 1rem);
+  }
+
+  .modal-header {
+    padding: 0.875rem 1.25rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
   .modal-header h3 {
     font-size: 1.1rem;
   }

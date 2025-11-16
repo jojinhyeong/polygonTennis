@@ -1,4 +1,4 @@
-<template>
+ㅜ프프<template>
   <div class="app">
     <div class="background-pattern"></div>
     <div class="app-content">
@@ -38,32 +38,26 @@
           </button>
         </div>
 
-        <transition name="fade" mode="out-in">
-          <GroupManager
-            v-if="activeTab === 'groups'"
-            :groups="groups"
-            @add-group="addGroup"
-            @remove-group="removeGroup"
-            @update-group="updateGroup"
-            key="groups"
-          />
-        </transition>
-        <transition name="fade" mode="out-in">
-          <BracketTab
-            v-if="activeTab === 'bracket'"
-            :groups="groups"
-            @update-bracket="updateBracket"
-            key="bracket"
-          />
-        </transition>
-        <transition name="fade" mode="out-in">
-          <RandomBracketTab
-            v-if="activeTab === 'random'"
-            :groups="groups"
-            @generate-random="generateRandomBracket"
-            key="random"
-          />
-        </transition>
+        <GroupManager
+          v-if="activeTab === 'groups'"
+          :groups="groups"
+          @add-group="addGroup"
+          @remove-group="removeGroup"
+          @update-group="updateGroup"
+          key="groups"
+        />
+        <BracketTab
+          v-if="activeTab === 'bracket'"
+          :groups="groups"
+          @update-bracket="updateBracket"
+          key="bracket"
+        />
+        <RandomBracketTab
+          v-if="activeTab === 'random'"
+          :groups="groups"
+          @generate-random="generateRandomBracket"
+          key="random"
+        />
       </div>
 
       <!-- 그룹 선택 모달 -->
@@ -300,7 +294,7 @@ const generateRandomBracket = (bracketData) => {
 <style scoped>
 .app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e293b 100%);
+  background: #ffffff;
   position: relative;
   overflow-x: hidden;
 }
@@ -311,10 +305,7 @@ const generateRandomBracket = (bracketData) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
-    radial-gradient(circle at 20% 50%, rgba(167, 139, 250, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(52, 211, 153, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 20%, rgba(167, 139, 250, 0.12) 0%, transparent 50%);
+  background-image: none;
   pointer-events: none;
   z-index: 0;
 }
@@ -322,7 +313,7 @@ const generateRandomBracket = (bracketData) => {
 .app-content {
   position: relative;
   z-index: 1;
-  padding: 1.5rem 1rem;
+  padding: 1rem 0.75rem;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
@@ -331,7 +322,7 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .app-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   animation: fadeInDown 0.8s ease-out;
 }
 
@@ -344,46 +335,43 @@ const generateRandomBracket = (bracketData) => {
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  gap: 0.625rem;
+  margin-bottom: 0.375rem;
 }
 
 .logo-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 8px 24px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
   animation: float 3s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 .tennis-ball-emoji {
-  font-size: 32px;
+  font-size: 26px;
   line-height: 1;
   display: block;
 }
 
 .app-title {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #ddd6fe 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #2E7D32;
   letter-spacing: -0.02em;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
 }
 
 .app-subtitle {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0.5rem 0 0 0;
+  font-size: 0.8rem;
+  color: #666666;
+  margin: 0.375rem 0 0 0;
   font-weight: 400;
   letter-spacing: 0.02em;
 }
@@ -392,7 +380,7 @@ const generateRandomBracket = (bracketData) => {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   animation: fadeInUp 0.8s ease-out 0.2s both;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -412,12 +400,11 @@ const generateRandomBracket = (bracketData) => {
   font-weight: 600;
   border: none;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.8);
+  background: #f5f5f5;
+  color: #666666;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -445,16 +432,16 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .tab-button:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: #e8f5e9;
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  color: white;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  color: #2E7D32;
 }
 
 .tab-button.active {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
-  box-shadow: 0 8px 30px rgba(167, 139, 250, 0.5);
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
   border-color: transparent;
   transform: translateY(-2px);
 }
@@ -498,7 +485,7 @@ const generateRandomBracket = (bracketData) => {
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -506,7 +493,7 @@ const generateRandomBracket = (bracketData) => {
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
-  box-shadow: 0 4px 16px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -515,7 +502,7 @@ const generateRandomBracket = (bracketData) => {
 
 .bulk-add-top-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(167, 139, 250, 0.5);
+  box-shadow: 0 6px 24px rgba(76, 175, 80, 0.4);
 }
 
 .bulk-add-top-btn:active {
@@ -632,10 +619,10 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .group-select-btn:hover {
-  border-color: #a78bfa;
-  background: #f5f3ff;
+  border-color: #4CAF50;
+  background: #e8f5e9;
   transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.2);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
 }
 
 .group-select-info {
@@ -664,7 +651,7 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .group-select-btn:hover svg {
-  color: #a78bfa;
+  color: #4CAF50;
 }
 
 .player-list-grid {
@@ -704,16 +691,16 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .player-chip:hover:not(.disabled) {
-  border-color: #a78bfa;
-  background: #f5f3ff;
+  border-color: #4CAF50;
+  background: #e8f5e9;
   transform: translateY(-2px);
 }
 
 .player-chip.selected {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
-  border-color: #a78bfa;
-  box-shadow: 0 2px 8px rgba(167, 139, 250, 0.3);
+  border-color: #4CAF50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
   font-weight: 600;
 }
 
@@ -724,7 +711,7 @@ const generateRandomBracket = (bracketData) => {
   right: -6px;
   width: 20px;
   height: 20px;
-  background: #10b981;
+  background: #2E7D32;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -732,7 +719,7 @@ const generateRandomBracket = (bracketData) => {
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 2px 6px rgba(46, 125, 50, 0.4);
   border: 2px solid white;
 }
 
@@ -782,9 +769,9 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .select-all-btn:hover {
-  border-color: #a78bfa;
-  background: #f5f3ff;
-  color: #a78bfa;
+  border-color: #4CAF50;
+  background: #e8f5e9;
+  color: #4CAF50;
 }
 
 .add-selected-btn {
@@ -793,12 +780,12 @@ const generateRandomBracket = (bracketData) => {
   font-size: 0.9rem;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   min-height: 48px;
@@ -806,7 +793,7 @@ const generateRandomBracket = (bracketData) => {
 
 .add-selected-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
 
 .add-selected-btn:disabled {

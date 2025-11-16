@@ -285,8 +285,8 @@ const createDoubleBracket = (players) => {
 .random-controls {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 20px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1.25rem 1rem;
+  margin-bottom: 1rem;
   box-shadow: 
     0 4px 6px rgba(0, 0, 0, 0.05),
     0 10px 30px rgba(0, 0, 0, 0.1);
@@ -297,17 +297,17 @@ const createDoubleBracket = (players) => {
 .controls-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 2px solid #f3f4f6;
 }
 
 .header-icon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -315,7 +315,7 @@ const createDoubleBracket = (players) => {
 }
 
 .controls-title {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
@@ -325,7 +325,7 @@ const createDoubleBracket = (players) => {
 .controls-body {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .control-group {
@@ -343,7 +343,7 @@ const createDoubleBracket = (players) => {
 }
 
 .control-label svg {
-  color: #a78bfa;
+  color: #4CAF50;
 }
 
 .select-input {
@@ -369,17 +369,17 @@ const createDoubleBracket = (players) => {
 }
 
 .select-input:focus {
-  border-color: #a78bfa;
-  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.2);
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
 }
 
 .generate-random-btn {
-  padding: 1rem 2rem;
-  font-size: 1rem;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.95rem;
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -388,16 +388,16 @@ const createDoubleBracket = (players) => {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  min-height: 52px;
+  min-height: 48px;
 }
 
 .generate-random-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
 
 .generate-random-btn:active {
@@ -407,7 +407,7 @@ const createDoubleBracket = (players) => {
 .brackets-container {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 20px;
-  padding: 1.5rem;
+  padding: 1.25rem 1rem;
   box-shadow: 
     0 4px 6px rgba(0, 0, 0, 0.05),
     0 10px 30px rgba(0, 0, 0, 0.1);
@@ -418,7 +418,7 @@ const createDoubleBracket = (players) => {
 .group-tabs {
   display: flex;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
   border-bottom: 2px solid #f3f4f6;
   padding-bottom: 0.75rem;
@@ -445,9 +445,9 @@ const createDoubleBracket = (players) => {
 }
 
 .group-tab.active {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
 .bracket-container {
@@ -458,7 +458,7 @@ const createDoubleBracket = (players) => {
 .empty-state {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 24px;
-  padding: 4rem 2rem;
+  padding: 2rem 1.5rem;
   text-align: center;
   box-shadow: 
     0 4px 6px rgba(0, 0, 0, 0.05),
@@ -468,19 +468,19 @@ const createDoubleBracket = (players) => {
 }
 
 .empty-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 1.5rem;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(52, 211, 153, 0.15) 100%);
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 1.25rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(102, 187, 106, 0.15) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a78bfa;
+  color: #4CAF50;
 }
 
 .empty-state h3 {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0 0 0.5rem 0;
@@ -489,7 +489,7 @@ const createDoubleBracket = (players) => {
 
 .empty-state p {
   color: #6b7280;
-  font-size: 1rem;
+  font-size: 0.875rem;
   margin: 0;
 }
 

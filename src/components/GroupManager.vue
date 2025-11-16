@@ -159,7 +159,7 @@ const updateGroupName = (groupId, name) => {
 .groups-container {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -168,18 +168,18 @@ const updateGroupName = (groupId, name) => {
 .groups-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .group-card {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
-  padding: 1.25rem;
+  padding: 1rem;
   box-shadow: 
     0 4px 6px rgba(0, 0, 0, 0.05),
     0 10px 30px rgba(0, 0, 0, 0.1);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.2);
   backdrop-filter: blur(20px);
   position: relative;
   overflow-x: hidden;
@@ -188,40 +188,25 @@ const updateGroupName = (groupId, name) => {
   box-sizing: border-box;
 }
 
-.group-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #a78bfa 0%, #34d399 100%);
-  transform: scaleX(0);
-  transition: transform 0.4s ease;
-}
-
-.group-card:hover::before {
-  transform: scaleX(1);
-}
 
 .group-card:hover {
   transform: translateY(-8px);
   box-shadow: 
     0 8px 12px rgba(0, 0, 0, 0.08),
-    0 20px 40px rgba(167, 139, 250, 0.3);
+    0 20px 40px rgba(76, 175, 80, 0.3);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .group-number {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #a78bfa;
+  color: #4CAF50;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-family: 'Inter', sans-serif;
@@ -249,7 +234,7 @@ const updateGroupName = (groupId, name) => {
 }
 
 .group-name-section {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .group-name-input {
@@ -259,7 +244,7 @@ const updateGroupName = (groupId, name) => {
   border: 2px solid transparent;
   outline: none;
   color: #1a1a1a;
-  background: rgba(167, 139, 250, 0.1);
+  background: rgba(76, 175, 80, 0.1);
   padding: 0.625rem 0.875rem;
   border-radius: 10px;
   transition: all 0.3s ease;
@@ -269,25 +254,25 @@ const updateGroupName = (groupId, name) => {
 }
 
 .group-name-input:hover {
-  background: rgba(167, 139, 250, 0.15);
-  border-color: rgba(167, 139, 250, 0.3);
+  background: rgba(76, 175, 80, 0.15);
+  border-color: rgba(76, 175, 80, 0.3);
 }
 
 .group-name-input:focus {
   background: white;
-  border-color: #a78bfa;
-  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.2);
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
 }
 
 .players-section {
-  margin-top: 1rem;
+  margin-top: 0.75rem;
 }
 
 .players-header {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .players-title {
@@ -300,7 +285,7 @@ const updateGroupName = (groupId, name) => {
 }
 
 .players-title svg {
-  color: #a78bfa;
+  color: #4CAF50;
 }
 
 .player-count {
@@ -315,7 +300,7 @@ const updateGroupName = (groupId, name) => {
   font-size: 0.8rem;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
   font-weight: 600;
@@ -324,7 +309,7 @@ const updateGroupName = (groupId, name) => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   min-height: 40px;
@@ -332,7 +317,7 @@ const updateGroupName = (groupId, name) => {
 
 .add-player-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(167, 139, 250, 0.4);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
 
 .add-player-btn:active {
@@ -365,7 +350,7 @@ const updateGroupName = (groupId, name) => {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -396,8 +381,8 @@ const updateGroupName = (groupId, name) => {
 }
 
 .player-input:focus {
-  border-color: #a78bfa;
-  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.2);
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
   background: white;
 }
 
@@ -444,8 +429,8 @@ const updateGroupName = (groupId, name) => {
 }
 
 .add-group-btn {
-  padding: 2rem 1.5rem;
-  border: 2px dashed rgba(167, 139, 250, 0.4);
+  padding: 1.5rem 1.25rem;
+  border: 2px dashed rgba(76, 175, 80, 0.4);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.6);
   cursor: pointer;
@@ -453,30 +438,30 @@ const updateGroupName = (groupId, name) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #a78bfa;
+  color: #4CAF50;
   backdrop-filter: blur(20px);
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  min-height: 120px;
+  min-height: 100px;
 }
 
 .add-group-btn:hover {
-  border-color: #a78bfa;
-  background: rgba(167, 139, 250, 0.15);
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.15);
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(167, 139, 250, 0.3);
+  box-shadow: 0 12px 40px rgba(76, 175, 80, 0.3);
 }
 
 .add-group-icon {
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   display: flex;
   align-items: center;
@@ -489,7 +474,7 @@ const updateGroupName = (groupId, name) => {
 }
 
 .add-group-text {
-  color: #a78bfa;
+  color: #4CAF50;
 }
 
 .list-enter-active,

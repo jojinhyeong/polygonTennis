@@ -266,12 +266,12 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 }
 
 .bracket-display::-webkit-scrollbar-track {
-  background: rgba(167, 139, 250, 0.1);
+  background: rgba(76, 175, 80, 0.1);
   border-radius: 4px;
 }
 
 .bracket-display::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%);
   border-radius: 4px;
 }
 
@@ -319,7 +319,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 }
 
 .round-badge {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 10px;
@@ -327,7 +327,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   font-size: 0.75rem;
   white-space: nowrap;
   box-shadow: 
-    0 3px 12px rgba(167, 139, 250, 0.4),
+    0 3px 12px rgba(76, 175, 80, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   display: flex;
@@ -371,7 +371,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 .round-line {
   flex: 1;
   height: 2px;
-  background: linear-gradient(90deg, #a78bfa 0%, rgba(167, 139, 250, 0.3) 100%);
+  background: linear-gradient(90deg, #4CAF50 0%, rgba(76, 175, 80, 0.3) 100%);
   border-radius: 2px;
 }
 
@@ -386,57 +386,45 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
   border-radius: 10px;
   padding: 0.75rem 0.875rem;
-  border: 2px solid rgba(167, 139, 250, 0.2);
+  border: 2px solid rgba(76, 175, 80, 0.2);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   box-shadow: 
-    0 2px 8px rgba(167, 139, 250, 0.1),
+    0 2px 8px rgba(76, 175, 80, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   overflow: hidden;
   width: 100%;
 }
 
 .match-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #a78bfa 0%, #34d399 100%);
-  transform: scaleX(0);
-  transition: transform 0.4s ease;
+  display: none;
 }
 
 .match-card:hover {
-  border-color: rgba(167, 139, 250, 0.4);
+  border-color: rgba(76, 175, 80, 0.4);
   box-shadow: 
-    0 12px 32px rgba(167, 139, 250, 0.2),
+    0 12px 32px rgba(76, 175, 80, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   transform: translateY(-4px);
 }
 
-.match-card:hover::before {
-  transform: scaleX(1);
-}
-
 .match-card.has-winner {
-  border-color: rgba(167, 139, 250, 0.5);
+  border-color: rgba(76, 175, 80, 0.5);
   box-shadow: 
-    0 8px 24px rgba(167, 139, 250, 0.25),
+    0 8px 24px rgba(76, 175, 80, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .match-header {
   margin-bottom: 0.5rem;
   padding-bottom: 0.25rem;
-  border-bottom: 1.5px solid rgba(167, 139, 250, 0.1);
+  border-bottom: 1.5px solid rgba(76, 175, 80, 0.1);
 }
 
 .match-number {
   font-size: 0.6rem;
   font-weight: 700;
-  color: #a78bfa;
+  color: #4CAF50;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-family: 'Inter', sans-serif;
@@ -452,7 +440,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   padding: 0.5rem 0.75rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.9) 100%);
   border-radius: 8px;
-  border: 2px solid rgba(167, 139, 250, 0.15);
+  border: 2px solid rgba(76, 175, 80, 0.15);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 600;
   color: #1f2937;
@@ -473,7 +461,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   top: 0;
   bottom: 0;
   width: 5px;
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   transform: scaleY(0);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -483,12 +471,12 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 }
 
 .team-card.winner {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   border-color: transparent;
   font-weight: 700;
   box-shadow: 
-    0 8px 24px rgba(167, 139, 250, 0.4),
+    0 8px 24px rgba(76, 175, 80, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transform: scale(1.02);
 }
@@ -538,9 +526,9 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 .group-tag {
   font-size: 0.6rem;
   padding: 0.15rem 0.4rem;
-  background: rgba(167, 139, 250, 0.15);
+  background: rgba(76, 175, 80, 0.15);
   border-radius: 5px;
-  color: #a78bfa;
+  color: #4CAF50;
   font-weight: 700;
   white-space: nowrap;
   font-family: 'Inter', sans-serif;
@@ -595,15 +583,15 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.05) 0%, rgba(52, 211, 153, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.05) 100%);
   border-radius: 8px;
-  border: 2px solid rgba(167, 139, 250, 0.2);
+  border: 2px solid rgba(76, 175, 80, 0.2);
 }
 
 .score-input-new {
   width: 45px;
   padding: 0.4rem;
-  border: 2px solid rgba(167, 139, 250, 0.3);
+  border: 2px solid rgba(76, 175, 80, 0.3);
   border-radius: 7px;
   font-size: 0.9rem;
   font-weight: 800;
@@ -626,10 +614,10 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 }
 
 .score-input-new:focus {
-  border-color: #a78bfa;
+  border-color: #4CAF50;
   box-shadow: 
-    0 0 0 4px rgba(167, 139, 250, 0.2),
-    0 4px 16px rgba(167, 139, 250, 0.15);
+    0 0 0 4px rgba(76, 175, 80, 0.2),
+    0 4px 16px rgba(76, 175, 80, 0.15);
   transform: scale(1.05);
 }
 
@@ -643,7 +631,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 .score-divider {
   font-size: 1rem;
   font-weight: 800;
-  color: #a78bfa;
+  color: #4CAF50;
   font-family: 'Inter', sans-serif;
 }
 
@@ -651,16 +639,16 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   margin-top: 0.5rem;
   padding: 0.5rem 0.75rem;
   text-align: center;
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(52, 211, 153, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
   border-radius: 8px;
-  border: 2px solid rgba(167, 139, 250, 0.3);
+  border: 2px solid rgba(76, 175, 80, 0.3);
   font-weight: 700;
   font-size: 0.7rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  box-shadow: 0 2px 8px rgba(167, 139, 250, 0.15);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   animation: winnerSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
