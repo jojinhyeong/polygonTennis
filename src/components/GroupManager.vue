@@ -154,6 +154,10 @@ const updateGroupName = (groupId, name) => {
   max-width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .groups-container {

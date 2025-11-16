@@ -280,6 +280,10 @@ const createDoubleBracket = (players) => {
 <style scoped>
 .random-bracket-tab {
   width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .random-controls {

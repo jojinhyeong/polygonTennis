@@ -319,6 +319,9 @@ const generateRandomBracket = (bracketData) => {
   width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .app-header {
@@ -471,6 +474,10 @@ const generateRandomBracket = (bracketData) => {
   overflow-x: hidden;
   box-sizing: border-box;
   animation: fadeInUp 0.8s ease-out 0.4s both;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .bulk-add-section {

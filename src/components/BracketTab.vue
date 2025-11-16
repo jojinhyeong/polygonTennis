@@ -170,7 +170,7 @@
 
           <div class="team-select-actions">
             <button class="clear-btn" @click="clearSelection" :disabled="selectedPlayers.length === 0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
               </svg>
@@ -181,7 +181,7 @@
               @click="generateBracketFromSelected" 
               :disabled="selectedPlayers.length < 4"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="9 11 12 14 22 4"></polyline>
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
               </svg>
@@ -487,6 +487,10 @@ const createDoubleBracket = (players) => {
 <style scoped>
 .bracket-tab {
   width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .bracket-controls {
@@ -1043,11 +1047,12 @@ const createDoubleBracket = (players) => {
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(12px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -1065,8 +1070,8 @@ const createDoubleBracket = (players) => {
   border-radius: 28px;
   width: 100%;
   max-width: 680px;
-  height: calc(100vh - 2rem);
   max-height: calc(100vh - 2rem);
+  min-height: 400px;
   display: flex;
   flex-direction: column;
   box-shadow: 
@@ -1078,6 +1083,7 @@ const createDoubleBracket = (players) => {
   animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   flex-shrink: 0;
+  margin: auto;
 }
 
 @keyframes modalSlideIn {
@@ -1378,12 +1384,14 @@ const createDoubleBracket = (players) => {
   gap: 0.75rem;
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1rem;
   background: linear-gradient(135deg, rgba(249, 250, 251, 0.8) 0%, rgba(243, 244, 246, 0.8) 100%);
   border-radius: 16px;
   border: 2px solid rgba(76, 175, 80, 0.15);
   -webkit-overflow-scrolling: touch;
   min-height: 0;
+  max-height: 100%;
 }
 
 .player-list-grid::-webkit-scrollbar {
@@ -1489,7 +1497,7 @@ const createDoubleBracket = (players) => {
 
 .team-select-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-top: 1rem;
   flex-shrink: 0;
   padding-top: 1rem;
@@ -1498,8 +1506,8 @@ const createDoubleBracket = (players) => {
 
 .clear-btn {
   flex: 1;
-  padding: 1rem 1.5rem;
-  font-size: 0.95rem;
+  padding: 0.875rem 0.875rem;
+  font-size: 0.8rem;
   border: 2px solid rgba(239, 68, 68, 0.3);
   border-radius: 14px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
@@ -1509,13 +1517,14 @@ const createDoubleBracket = (players) => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  min-height: 52px;
+  min-height: 44px;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
 }
 
 .clear-btn:hover:not(:disabled) {
@@ -1534,8 +1543,8 @@ const createDoubleBracket = (players) => {
 
 .generate-bracket-btn {
   flex: 2;
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.875rem 0.875rem;
+  font-size: 0.8rem;
   border: none;
   border-radius: 14px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
@@ -1545,7 +1554,7 @@ const createDoubleBracket = (players) => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  min-height: 52px;
+  min-height: 44px;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   box-shadow: 
     0 8px 24px rgba(76, 175, 80, 0.4),
@@ -1553,9 +1562,10 @@ const createDoubleBracket = (players) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  letter-spacing: 0.02em;
+  gap: 0.4rem;
+  letter-spacing: 0.01em;
   position: relative;
+  white-space: nowrap;
   overflow: hidden;
 }
 
@@ -1613,12 +1623,15 @@ const createDoubleBracket = (players) => {
 @media (max-width: 480px) {
   .modal-overlay {
     padding: 0.5rem;
+    align-items: flex-start;
+    padding-top: 1rem;
   }
 
   .modal-content {
-    height: calc(100vh - 1rem);
-    max-height: calc(100vh - 1rem);
+    max-height: calc(100vh - 2rem);
+    min-height: 300px;
     width: calc(100% - 1rem);
+    margin: 0 auto;
   }
 
   .modal-header {
@@ -1636,6 +1649,7 @@ const createDoubleBracket = (players) => {
   .player-list-grid {
     padding: 0.5rem;
     gap: 0.5rem;
+    max-height: 100%;
   }
 
   .player-chip {
