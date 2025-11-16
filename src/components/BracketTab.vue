@@ -1067,11 +1067,10 @@ const createDoubleBracket = (players) => {
 
 .modal-content {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
-  border-radius: 28px;
+  border-radius: 24px;
   width: 100%;
   max-width: 680px;
-  max-height: calc(100vh - 2rem);
-  min-height: 400px;
+  max-height: 75vh;
   display: flex;
   flex-direction: column;
   box-shadow: 
@@ -1101,7 +1100,7 @@ const createDoubleBracket = (players) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
+  padding: 0.875rem 1.25rem;
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
   border-bottom: 2px solid rgba(76, 175, 80, 0.15);
   flex-shrink: 0;
@@ -1119,10 +1118,10 @@ const createDoubleBracket = (players) => {
 }
 
 .modal-icon {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  border-radius: 14px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1132,7 +1131,7 @@ const createDoubleBracket = (players) => {
 
 .modal-header h3 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 800;
   color: #2E7D32;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -1141,17 +1140,17 @@ const createDoubleBracket = (players) => {
 
 .modal-subtitle {
   margin: 0.25rem 0 0 0;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #6b7280;
   font-weight: 500;
 }
 
 .modal-close-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: rgba(76, 175, 80, 0.1);
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1169,7 +1168,7 @@ const createDoubleBracket = (players) => {
 }
 
 .modal-body {
-  padding: 1.25rem;
+  padding: 0.875rem;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1181,16 +1180,17 @@ const createDoubleBracket = (players) => {
 .modal-info-card {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
   background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(102, 187, 106, 0.08) 100%);
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid rgba(76, 175, 80, 0.2);
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
   color: #4b5563;
   font-weight: 500;
   flex-shrink: 0;
+  line-height: 1.4;
 }
 
 .modal-info-card svg {
@@ -1357,12 +1357,12 @@ const createDoubleBracket = (players) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  margin-bottom: 0.625rem;
   flex-shrink: 0;
 }
 
 .player-section-title {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #1f2937;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -1370,24 +1370,24 @@ const createDoubleBracket = (players) => {
 }
 
 .player-count {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #4CAF50;
   background: rgba(76, 175, 80, 0.1);
-  padding: 0.375rem 0.75rem;
+  padding: 0.3rem 0.625rem;
   border-radius: 8px;
 }
 
 .player-list-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 0.75rem;
+  gap: 0.625rem;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1rem;
+  padding: 0.75rem;
   background: linear-gradient(135deg, rgba(249, 250, 251, 0.8) 0%, rgba(243, 244, 246, 0.8) 100%);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 2px solid rgba(76, 175, 80, 0.15);
   -webkit-overflow-scrolling: touch;
   min-height: 0;
@@ -1497,10 +1497,10 @@ const createDoubleBracket = (players) => {
 
 .team-select-actions {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
   flex-shrink: 0;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px solid rgba(76, 175, 80, 0.1);
 }
 
@@ -1628,18 +1628,17 @@ const createDoubleBracket = (players) => {
   }
 
   .modal-content {
-    max-height: calc(100vh - 2rem);
-    min-height: 300px;
+    max-height: 75vh;
     width: calc(100% - 1rem);
     margin: 0 auto;
   }
 
   .modal-header {
-    padding: 0.875rem 1.25rem;
+    padding: 0.75rem 1rem;
   }
 
   .modal-body {
-    padding: 1rem;
+    padding: 0.875rem;
   }
 
   .modal-header h3 {
