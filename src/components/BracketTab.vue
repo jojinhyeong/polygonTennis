@@ -8,7 +8,7 @@
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
           </svg>
         </div>
-        <h2 class="controls-title">고정팀</h2>
+        <h2 class="controls-title">팀 선택 복식 대진 생성</h2>
       </div>
       <div class="controls-body">
         <div class="control-group">

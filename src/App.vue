@@ -145,7 +145,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import GroupManager from './components/GroupManager.vue'
 import BracketTab from './components/BracketTab.vue'
 import RandomBracketTab from './components/RandomBracketTab.vue'
@@ -244,7 +244,7 @@ const tabs = [
   },
   { 
     id: 'bracket', 
-    label: '팀 고정',
+    label: '팀 선택',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>'
   },
   { 
@@ -283,25 +283,79 @@ const loadGroupsFromStorage = () => {
   ]
 }
 
-// 그룹을 로컬스토리지에 저장
-const saveGroupsToStorage = () => {
+// 비어있는 선수 제거 함수 (변경 여부 반환)
+const removeEmptyPlayers = () => {
+  let hasChanges = false
+  groups.value.forEach(group => {
+    if (group.players && Array.isArray(group.players)) {
+      const originalLength = group.players.length
+      group.players = group.players.filter(player => 
+        player && player.name && player.name.trim() !== ''
+      )
+      if (group.players.length !== originalLength) {
+        hasChanges = true
+      }
+    }
+  })
+  return hasChanges
+}
+
+// 저장 중 플래그 (무한 루프 방지)
+let isSaving = false
+let isRemovingEmpty = false
+
+// 그룹을 로컬스토리지에 저장 (비어있는 선수 제거 없이)
+const saveGroupsToStorage = (skipRemoveEmpty = false) => {
+  if (isSaving) return // 이미 저장 중이면 무시
   try {
+    isSaving = true
+    // skipRemoveEmpty가 false일 때만 비어있는 선수 제거
+    if (!skipRemoveEmpty && !isRemovingEmpty) {
+      isRemovingEmpty = true
+      removeEmptyPlayers()
+      isRemovingEmpty = false
+    }
     localStorage.setItem('polygonTennis_groups', JSON.stringify(groups.value))
   } catch (error) {
     console.error('그룹 데이터 저장 실패:', error)
+  } finally {
+    isSaving = false
   }
 }
 
 const groups = ref(loadGroupsFromStorage())
 
-// 그룹이 변경될 때마다 자동 저장
+// 그룹이 변경될 때마다 자동 저장 (비어있는 선수 제거는 하지 않음)
 watch(groups, () => {
-  saveGroupsToStorage()
+  if (!isSaving && !isRemovingEmpty) {
+    saveGroupsToStorage(true) // skipRemoveEmpty = true
+  }
 }, { deep: true })
 
-// 컴포넌트 마운트 시 저장 (초기 로드 후)
+// 탭 변경 시 비어있는 선수 제거
+watch(activeTab, () => {
+  // nextTick을 사용하여 현재 렌더링 사이클이 끝난 후 실행
+  nextTick(() => {
+    if (isSaving || isRemovingEmpty) return
+    isRemovingEmpty = true
+    const hasChanges = removeEmptyPlayers()
+    isRemovingEmpty = false
+    if (hasChanges && !isSaving) {
+      saveGroupsToStorage(true) // skipRemoveEmpty = true (이미 제거했으므로)
+    }
+  })
+})
+
+// 컴포넌트 마운트 시 저장 (초기 로드 후, 비어있는 선수 제거 포함)
 onMounted(() => {
-  saveGroupsToStorage()
+  nextTick(() => {
+    if (!isRemovingEmpty) {
+      isRemovingEmpty = true
+      removeEmptyPlayers()
+      isRemovingEmpty = false
+    }
+    saveGroupsToStorage(true)
+  })
 })
 
 const addGroup = () => {
@@ -313,15 +367,15 @@ const addGroup = () => {
     name: `그룹 ${newGroupId}`,
     players: []
   })
-  // watch가 자동으로 저장하지만, 명시적으로도 저장
-  saveGroupsToStorage()
+  // watch가 자동으로 저장하지만, 명시적으로도 저장 (비어있는 선수 제거는 하지 않음)
+  saveGroupsToStorage(true)
 }
 
 const removeGroup = (groupId) => {
   if (groups.value.length > 1) {
     groups.value = groups.value.filter(g => g.id !== groupId)
-    // watch가 자동으로 저장하지만, 명시적으로도 저장
-    saveGroupsToStorage()
+    // watch가 자동으로 저장하지만, 명시적으로도 저장 (비어있는 선수 제거는 하지 않음)
+    saveGroupsToStorage(true)
   } else {
     alert('최소 1개의 그룹이 필요합니다.')
   }
@@ -330,9 +384,10 @@ const removeGroup = (groupId) => {
 const updateGroup = (groupId, updatedGroup) => {
   const index = groups.value.findIndex(g => g.id === groupId)
   if (index !== -1) {
+    // players 업데이트 시 비어있는 선수는 제거하지 않음 (탭 이동 시에만 제거)
     groups.value[index] = { ...groups.value[index], ...updatedGroup }
-    // watch가 자동으로 저장하지만, 명시적으로도 저장
-    saveGroupsToStorage()
+    // watch가 자동으로 저장하지만, 명시적으로도 저장 (비어있는 선수 제거는 하지 않음)
+    saveGroupsToStorage(true)
   }
 }
 

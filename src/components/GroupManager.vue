@@ -33,7 +33,7 @@
           </div>
 
           <div class="players-section">
-            <div class="players-header">
+            <div class="players-header" @click="togglePlayersList(group.id)">
               <div class="players-title">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -43,8 +43,20 @@
                 </svg>
                 <span>선수 목록</span>
                 <span class="player-count" v-if="group.players.length > 0">({{ group.players.length }})</span>
+                <svg 
+                  class="toggle-arrow" 
+                  :class="{ 'expanded': isGroupExpanded(group.id) }"
+                  width="18" 
+                  height="18" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  stroke-width="2"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
               </div>
-              <button class="add-player-btn" @click="addPlayer(group.id)">
+              <button class="add-player-btn" @click.stop="addPlayer(group.id)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -53,7 +65,7 @@
               </button>
             </div>
 
-            <div class="players-list">
+            <div class="players-list" v-show="isGroupExpanded(group.id)">
               <transition-group name="player-list" tag="div">
                 <div
                   v-for="(player, index) in group.players"
@@ -108,7 +120,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { ref, defineProps, defineEmits } from 'vue'
 
 const props = defineProps({
   groups: {
@@ -119,27 +131,50 @@ const props = defineProps({
 
 const emit = defineEmits(['add-group', 'remove-group', 'update-group'])
 
+// 각 그룹의 선수 목록 토글 상태 관리
+const expandedGroups = ref(new Set())
+
+const togglePlayersList = (groupId) => {
+  if (expandedGroups.value.has(groupId)) {
+    expandedGroups.value.delete(groupId)
+  } else {
+    expandedGroups.value.add(groupId)
+  }
+}
+
+const isGroupExpanded = (groupId) => {
+  return expandedGroups.value.has(groupId)
+}
+
 const addPlayer = (groupId) => {
   const group = props.groups.find(g => g.id === groupId)
   if (group) {
-    group.players.push({ name: '' })
-    emit('update-group', groupId, { players: group.players })
+    // 새로운 배열을 생성하여 반응성 보장
+    const newPlayers = [...group.players, { name: '' }]
+    emit('update-group', groupId, { players: newPlayers })
+    // 선수 추가 시 토글이 닫혀있으면 자동으로 열기
+    if (!isGroupExpanded(groupId)) {
+      expandedGroups.value.add(groupId)
+    }
   }
 }
 
 const removePlayer = (groupId, playerIndex) => {
   const group = props.groups.find(g => g.id === groupId)
   if (group) {
-    group.players.splice(playerIndex, 1)
-    emit('update-group', groupId, { players: group.players })
+    // 새로운 배열을 생성하여 반응성 보장
+    const newPlayers = group.players.filter((_, index) => index !== playerIndex)
+    emit('update-group', groupId, { players: newPlayers })
   }
 }
 
 const updatePlayer = (groupId, playerIndex, name) => {
   const group = props.groups.find(g => g.id === groupId)
   if (group && group.players[playerIndex]) {
-    group.players[playerIndex].name = name
-    emit('update-group', groupId, { players: group.players })
+    // 새로운 배열을 생성하여 반응성 보장
+    const newPlayers = [...group.players]
+    newPlayers[playerIndex] = { ...newPlayers[playerIndex], name }
+    emit('update-group', groupId, { players: newPlayers })
   }
 }
 
@@ -274,18 +309,38 @@ const updateGroupName = (groupId, name) => {
 
 .players-header {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 0.75rem;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.players-header:hover {
+  background-color: rgba(76, 175, 80, 0.05);
 }
 
 .players-title {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.5rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #374151;
-  font-size: 0.875rem;
+  color: #2E7D32;
+  flex: 1;
+}
+
+.toggle-arrow {
+  transition: transform 0.3s ease;
+  color: #4CAF50;
+  margin-left: 0.25rem;
+}
+
+.toggle-arrow.expanded {
+  transform: rotate(180deg);
 }
 
 .players-title svg {
