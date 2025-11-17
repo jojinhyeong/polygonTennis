@@ -43,11 +43,8 @@
                 <div class="team-info">
                   <div v-if="match.team1" class="team-name-wrapper">
                     <span class="team-name">{{ getTeamName(match.team1) }}</span>
-                    <span v-if="match.team1 && match.team1.groupName" class="group-tag">
-                      {{ match.team1.groupName }}
-                    </span>
                   </div>
-                  <span v-else class="empty-label">부전승</span>
+                  <span v-else class="empty-label">미정</span>
                 </div>
                 <div v-if="match.winner && getTeamName(match.team1) === match.winner" class="winner-badge">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -55,29 +52,15 @@
                   </svg>
                 </div>
               </div>
-            </div>
-            
-            <div class="score-card">
               <input
+                v-if="match.team1 && match.team2"
                 v-model.number="match.score1"
                 type="number"
-                class="score-input-new"
+                class="score-input"
                 placeholder="0"
                 min="0"
                 @input="updateScore(match)"
                 @change="updateScore(match)"
-                :disabled="!match.team1 || !match.team2"
-              />
-              <div class="score-divider">:</div>
-              <input
-                v-model.number="match.score2"
-                type="number"
-                class="score-input-new"
-                placeholder="0"
-                min="0"
-                @input="updateScore(match)"
-                @change="updateScore(match)"
-                :disabled="!match.team1 || !match.team2"
               />
             </div>
 
@@ -92,11 +75,8 @@
                 <div class="team-info">
                   <div v-if="match.team2" class="team-name-wrapper">
                     <span class="team-name">{{ getTeamName(match.team2) }}</span>
-                    <span v-if="match.team2 && match.team2.groupName" class="group-tag">
-                      {{ match.team2.groupName }}
-                    </span>
                   </div>
-                  <span v-else class="empty-label">부전승</span>
+                  <span v-else class="empty-label">미정</span>
                 </div>
                 <div v-if="match.winner && getTeamName(match.team2) === match.winner" class="winner-badge">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -104,6 +84,16 @@
                   </svg>
                 </div>
               </div>
+              <input
+                v-if="match.team1 && match.team2"
+                v-model.number="match.score2"
+                type="number"
+                class="score-input"
+                placeholder="0"
+                min="0"
+                @input="updateScore(match)"
+                @change="updateScore(match)"
+              />
             </div>
           </div>
           <div v-if="match.winner" class="match-winner">
@@ -121,7 +111,9 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps, defineEmits } from 'vue'
+
+const emit = defineEmits(['champion-winner'])
 
 const props = defineProps({
   bracket: {
@@ -179,19 +171,38 @@ const updateScore = (match) => {
   
   const score1 = match.score1
   const score2 = match.score2
+  const currentRoundIndex = match.round
+  const isFinalRound = currentRoundIndex === props.bracket.length - 1
+  const previousWinner = match.winner
 
   // 둘 다 숫자로 입력되어야 승자 결정
   if (score1 !== null && score1 !== undefined && score2 !== null && score2 !== undefined) {
+    let winner = null
+    let winnerTeam = null
+    
     if (score1 > score2) {
-      match.winner = getTeamName(match.team1)
-      advanceToNextRound(match, match.team1)
+      winner = getTeamName(match.team1)
+      winnerTeam = match.team1
+      match.winner = winner
+      if (!isFinalRound) {
+        advanceToNextRound(match, winnerTeam)
+      }
     } else if (score2 > score1) {
-      match.winner = getTeamName(match.team2)
-      advanceToNextRound(match, match.team2)
+      winner = getTeamName(match.team2)
+      winnerTeam = match.team2
+      match.winner = winner
+      if (!isFinalRound) {
+        advanceToNextRound(match, winnerTeam)
+      }
     } else {
       // 동점인 경우
       match.winner = null
       clearNextRound(match)
+    }
+    
+    // 결승전에서 우승자가 새로 결정되거나 변경된 경우에만 이벤트 emit
+    if (isFinalRound && winner && winnerTeam && previousWinner !== winner) {
+      emit('champion-winner', { winner, winnerTeam })
     }
   } else {
     // 스코어가 없으면 승자 없음
@@ -451,21 +462,21 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 }
 
 .team-card {
-  padding: 0.5rem 0.75rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.9) 100%);
-  border-radius: 8px;
-  border: 2px solid rgba(76, 175, 80, 0.15);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.5rem 0.625rem;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  transition: all 0.3s ease;
   font-weight: 600;
   color: #1f2937;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   min-height: 40px;
   position: relative;
   overflow: hidden;
   font-size: 0.75rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .team-card::before {
@@ -485,18 +496,38 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 }
 
 .team-card.winner {
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  color: white;
-  border-color: transparent;
-  font-weight: 700;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(102, 187, 106, 0.3) 100%);
+  border-color: #f44336;
+  border-width: 2px;
   box-shadow: 
-    0 8px 24px rgba(76, 175, 80, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  transform: scale(1.02);
+    0 2px 8px rgba(76, 175, 80, 0.3),
+    0 0 0 2px rgba(76, 175, 80, 0.1);
+  font-weight: 700;
+  position: relative;
+  animation: winnerPulse 2s ease-in-out infinite;
 }
 
 .team-card.winner::before {
-  display: none;
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  border-radius: 6px;
+  z-index: -1;
+  opacity: 0.3;
+  animation: winnerGlow 2s ease-in-out infinite;
+}
+
+@keyframes winnerGlow {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .team-card.empty {
@@ -507,9 +538,8 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 .team-card-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 1rem;
+  gap: 0.5rem;
+  flex: 1;
 }
 
 .team-info {
@@ -534,26 +564,11 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 }
 
 .team-card.winner .team-name {
-  color: white;
-}
-
-.group-tag {
-  font-size: 0.6rem;
-  padding: 0.15rem 0.4rem;
-  background: rgba(76, 175, 80, 0.15);
-  border-radius: 5px;
-  color: #4CAF50;
+  color: #1B5E20;
   font-weight: 700;
-  white-space: nowrap;
-  font-family: 'Inter', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-shadow: 0 1px 2px rgba(76, 175, 80, 0.2);
 }
 
-.team-card.winner .group-tag {
-  background: rgba(255, 255, 255, 0.25);
-  color: white;
-}
 
 .empty-label {
   color: #9ca3af;
@@ -591,62 +606,42 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   }
 }
 
-.score-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.05) 100%);
-  border-radius: 8px;
-  border: 2px solid rgba(76, 175, 80, 0.2);
+@keyframes winnerPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 
-.score-input-new {
-  width: 45px;
-  padding: 0.4rem;
-  border: 2px solid rgba(76, 175, 80, 0.3);
-  border-radius: 7px;
-  font-size: 0.9rem;
-  font-weight: 800;
+.score-input {
+  width: 40px;
+  padding: 0.25rem 0.4rem;
+  border: 2px solid rgba(76, 175, 80, 0.2);
+  border-radius: 4px;
   text-align: center;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2E7D32;
+  transition: all 0.3s ease;
+  background: white;
   outline: none;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: textfield;
-  background: white;
-  color: #1f2937;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-.score-input-new::-webkit-outer-spin-button,
-.score-input-new::-webkit-inner-spin-button {
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.score-input-new:focus {
+.score-input:focus {
+  outline: none;
   border-color: #4CAF50;
-  box-shadow: 
-    0 0 0 4px rgba(76, 175, 80, 0.2),
-    0 4px 16px rgba(76, 175, 80, 0.15);
-  transform: scale(1.05);
-}
-
-.score-input-new:disabled {
-  background: rgba(243, 244, 246, 0.8);
-  cursor: not-allowed;
-  opacity: 0.6;
-  transform: none;
-}
-
-.score-divider {
-  font-size: 1rem;
-  font-weight: 800;
-  color: #4CAF50;
-  font-family: 'Inter', sans-serif;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
 .match-winner {

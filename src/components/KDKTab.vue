@@ -145,21 +145,8 @@
                 <span class="player-name">{{ match.team1Player1 }}</span>
                 <span class="player-separator">/</span>
                 <span class="player-name">{{ match.team1Player2 }}</span>
-              </div>
-              
-              <div class="score-card">
                 <input
                   v-model.number="match.setScore1"
-                  type="number"
-                  class="score-input"
-                  placeholder="0"
-                  min="0"
-                  @input="updateScore(match)"
-                  @blur="updateScore(match)"
-                />
-                <span class="score-separator">:</span>
-                <input
-                  v-model.number="match.setScore2"
                   type="number"
                   class="score-input"
                   placeholder="0"
@@ -173,6 +160,15 @@
                 <span class="player-name">{{ match.team2Player1 }}</span>
                 <span class="player-separator">/</span>
                 <span class="player-name">{{ match.team2Player2 }}</span>
+                <input
+                  v-model.number="match.setScore2"
+                  type="number"
+                  class="score-input"
+                  placeholder="0"
+                  min="0"
+                  @input="updateScore(match)"
+                  @blur="updateScore(match)"
+                />
               </div>
             </div>
           </div>
@@ -777,8 +773,8 @@ const matchResults = computed(() => {
 .team-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.5rem 0.625rem;
   background: rgba(76, 175, 80, 0.1);
   border-radius: 6px;
@@ -848,24 +844,17 @@ const matchResults = computed(() => {
   font-size: 0.7rem;
 }
 
-.score-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-}
-
 .score-input {
-  width: 50px;
-  padding: 0.4rem;
+  width: 40px;
+  padding: 0.25rem 0.4rem;
   border: 2px solid rgba(76, 175, 80, 0.2);
-  border-radius: 6px;
+  border-radius: 4px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #2E7D32;
   transition: all 0.3s ease;
+  background: white;
 }
 
 .score-input:focus {
@@ -875,9 +864,10 @@ const matchResults = computed(() => {
 }
 
 .score-separator {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #4CAF50;
+  color: #999;
+  font-weight: 400;
+  font-size: 0.7rem;
+  margin: 0 0.125rem;
 }
 
 .empty-state {

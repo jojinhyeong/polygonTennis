@@ -28,7 +28,7 @@
             :label-formatter="(group) => `${group.name} (${group.players.length}명)`"
           />
         </div>
-        <button class="generate-random-btn" @click="generateRandomBracket">
+        <button class="generate-random-btn" @click="generateRandomBracket" :disabled="!selectedGroupId">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="16 18 22 12 16 6"></polyline>
             <polyline points="8 6 2 12 8 18"></polyline>
@@ -53,8 +53,53 @@
       <div v-if="selectedViewGroupId && bracketsByGroup.has(selectedViewGroupId)" class="bracket-container">
         <BracketDisplay 
           :bracket="bracketsByGroup.get(selectedViewGroupId)" 
-          :bracket-type="'double'" 
+          :bracket-type="'double'"
+          @champion-winner="handleChampionWinner"
         />
+      </div>
+      
+      <!-- 팡파레 이펙트 -->
+      <div v-if="showCelebration" class="celebration-overlay">
+        <!-- 폭죽 이펙트 -->
+        <div class="fireworks-container">
+          <template v-for="i in 12" :key="`firework-${i}`">
+            <div class="firework" :style="getFireworkStyle(i, 12)">
+              <div v-for="j in 5" :key="`particle-${i}-${j}`" class="firework-particle" :style="getParticleStyle(i, j, 12)"></div>
+            </div>
+          </template>
+        </div>
+        <!-- 추가 폭죽 이펙트 (지연) -->
+        <div class="fireworks-container fireworks-delayed">
+          <template v-for="i in 8" :key="`firework-delayed-${i}`">
+            <div class="firework firework-delayed" :style="getFireworkStyle(i, 8, 0.5)">
+              <div v-for="j in 5" :key="`particle-delayed-${i}-${j}`" class="firework-particle" :style="getParticleStyle(i, j, 8, 0.5)"></div>
+            </div>
+          </template>
+        </div>
+        <!-- Confetti 이펙트 -->
+        <div class="confetti-container">
+          <div v-for="i in 80" :key="i" class="confetti" :style="getConfettiStyle(i)"></div>
+        </div>
+      </div>
+      
+      <!-- 우승자 모달 -->
+      <div v-if="showWinnerModal" class="winner-modal-overlay" @click="closeWinnerModal">
+        <div class="winner-modal" @click.stop>
+          <div class="winner-modal-header">
+            <div class="winner-crown-large">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5z"></path>
+                <path d="M12 18v4"></path>
+                <path d="M8 21h8"></path>
+              </svg>
+            </div>
+            <h2 class="winner-title">우승자!</h2>
+          </div>
+          <div class="winner-content">
+            <div class="winner-names">{{ championWinner }}</div>
+          </div>
+          <button class="winner-close-btn" @click="closeWinnerModal">확인</button>
+        </div>
       </div>
     </div>
 
@@ -88,11 +133,105 @@ const emit = defineEmits(['generate-random'])
 const selectedGroupId = ref('')
 const bracketsByGroup = ref(new Map())
 const selectedViewGroupId = ref(null)
+const showCelebration = ref(false)
+const showWinnerModal = ref(false)
+const championWinner = ref('')
+const lastChampionWinner = ref('') // 마지막으로 표시한 우승자 추적
 
 const getGroupName = (groupId) => {
   if (groupId === 'all') return '전체'
   const group = props.groups.find(g => g.id === groupId)
   return group ? group.name : `그룹 ${groupId}`
+}
+
+const handleChampionWinner = ({ winner, winnerTeam }) => {
+  // 같은 우승자면 중복 표시하지 않음
+  if (lastChampionWinner.value === winner && showWinnerModal.value) {
+    return
+  }
+  
+  championWinner.value = winner
+  lastChampionWinner.value = winner
+  
+  // 기존 이펙트와 모달 닫기
+  showCelebration.value = false
+  showWinnerModal.value = false
+  
+  // 잠시 후 새로 표시
+  setTimeout(() => {
+    showCelebration.value = true
+    showWinnerModal.value = true
+    
+    // 3초 후 팡파레 이펙트 제거
+    setTimeout(() => {
+      showCelebration.value = false
+    }, 3000)
+  }, 100)
+}
+
+const closeWinnerModal = () => {
+  showWinnerModal.value = false
+  showCelebration.value = false
+  // 모달을 닫을 때는 lastChampionWinner를 초기화하지 않음 (같은 우승자 재표시 방지)
+}
+
+const getConfettiStyle = (index) => {
+  const colors = ['#4CAF50', '#66BB6A', '#f44336', '#FF9800', '#2196F3', '#9C27B0', '#FFC107', '#00BCD4', '#E91E63']
+  const color = colors[index % colors.length]
+  const left = Math.random() * 100
+  const delay = Math.random() * 0.5
+  const duration = 2 + Math.random() * 1
+  const size = 8 + Math.random() * 8
+  const shape = Math.random() > 0.5 ? 'square' : 'circle'
+  const drift = (Math.random() - 0.5) * 200 // 좌우로 흩어지는 정도
+  
+  return {
+    left: `${left}%`,
+    backgroundColor: color,
+    animationDelay: `${delay}s`,
+    animationDuration: `${duration}s`,
+    width: `${size}px`,
+    height: `${size}px`,
+    borderRadius: shape === 'circle' ? '50%' : '2px',
+    '--drift': drift
+  }
+}
+
+const getFireworkStyle = (index, total, baseDelay = 0) => {
+  const colors = ['#4CAF50', '#f44336', '#FF9800', '#2196F3', '#9C27B0', '#FFC107', '#00BCD4', '#E91E63', '#FF5722', '#9E9E9E']
+  const color = colors[index % colors.length]
+  const angle = (360 / total) * index
+  const delay = baseDelay + (index * 0.1)
+  const radius = 250 + Math.random() * 100
+  const angleRad = (angle * Math.PI) / 180
+  const x = Math.cos(angleRad) * radius
+  const y = Math.sin(angleRad) * radius
+  
+  return {
+    '--color': color,
+    '--x': `${x}px`,
+    '--y': `${y}px`,
+    animationDelay: `${delay}s`
+  }
+}
+
+const getParticleStyle = (fireworkIndex, particleIndex, total, baseDelay = 0) => {
+  const colors = ['#4CAF50', '#f44336', '#FF9800', '#2196F3', '#9C27B0', '#FFC107', '#00BCD4', '#E91E63', '#FF5722', '#9E9E9E']
+  const color = colors[fireworkIndex % colors.length]
+  const angle = (360 / total) * fireworkIndex
+  const particleAngle = angle + (particleIndex - 2) * 25
+  const particleAngleRad = (particleAngle * Math.PI) / 180
+  const particleRadius = 180 + Math.random() * 100
+  const x = Math.cos(particleAngleRad) * particleRadius
+  const y = Math.sin(particleAngleRad) * particleRadius
+  const delay = baseDelay + (fireworkIndex * 0.1) + 0.1
+  
+  return {
+    '--color': color,
+    '--px': `${x}px`,
+    '--py': `${y}px`,
+    animationDelay: `${delay}s`
+  }
 }
 
 const generateRandomBracket = () => {
@@ -486,5 +625,269 @@ const createDoubleBracket = (players) => {
     padding: 2rem;
     border-radius: 24px;
   }
+}
+
+/* 팡파레 이펙트 */
+.celebration-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+/* 폭죽 이펙트 */
+.fireworks-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.firework {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color);
+  box-shadow: 0 0 20px var(--color), 0 0 40px var(--color);
+  animation: fireworkExplode 1.5s ease-out forwards;
+}
+
+@keyframes fireworkExplode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+    box-shadow: 0 0 20px var(--color), 0 0 40px var(--color);
+  }
+  20% {
+    transform: translate(0, 0) scale(2);
+    opacity: 1;
+    box-shadow: 0 0 30px var(--color), 0 0 60px var(--color), 0 0 90px var(--color);
+  }
+  100% {
+    transform: translate(var(--x), var(--y)) scale(0);
+    opacity: 0;
+  }
+}
+
+.firework-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color);
+  box-shadow: 0 0 15px var(--color), 0 0 30px var(--color);
+  top: 50%;
+  left: 50%;
+  margin-top: -3px;
+  margin-left: -3px;
+  animation: particleExplode 1.5s ease-out forwards;
+}
+
+@keyframes particleExplode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+    box-shadow: 0 0 15px var(--color), 0 0 30px var(--color);
+  }
+  30% {
+    opacity: 1;
+    box-shadow: 0 0 20px var(--color), 0 0 40px var(--color);
+  }
+  100% {
+    transform: translate(var(--px), var(--py)) scale(0);
+    opacity: 0;
+  }
+}
+
+.firework-delayed {
+  animation-delay: 0.5s;
+}
+
+.confetti-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.confetti {
+  position: absolute;
+  top: -10px;
+  animation: confettiFall linear forwards;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) translateX(var(--drift, 0px)) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* 우승자 모달 */
+.winner-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.winner-modal {
+  background: white;
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.winner-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4CAF50, #66BB6A, #f44336, #FF9800, #2196F3, #9C27B0, #FFC107, #4CAF50);
+  background-size: 200% 100%;
+  animation: gradientShift 3s linear infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.winner-modal-header {
+  margin-bottom: 1.5rem;
+}
+
+.winner-crown-large {
+  color: #FFD700;
+  margin: 0 auto 1rem;
+  animation: crownBounce 1s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(255, 215, 0, 0.4));
+}
+
+@keyframes crownBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+.winner-title {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 50%, #f44336 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  animation: titlePulse 2s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.winner-content {
+  margin-bottom: 2rem;
+}
+
+.winner-names {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2E7D32;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+}
+
+.winner-close-btn {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+}
+
+.winner-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.winner-close-btn:active {
+  transform: translateY(0);
 }
 </style>
