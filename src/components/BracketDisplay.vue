@@ -621,7 +621,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   border: 2px solid rgba(76, 175, 80, 0.2);
   border-radius: 4px;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 16px;
   font-weight: 700;
   color: #2E7D32;
   transition: all 0.3s ease;
