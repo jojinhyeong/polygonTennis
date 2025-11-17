@@ -184,18 +184,6 @@
           </div>
         </div>
         
-        <div v-if="selectedSeeds.length > 0 && !hasSeedConflicts" class="seed-valid-alert">
-          <div class="alert-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-          <div class="alert-content">
-            <strong>시드 검증 완료</strong>
-            <p>모든 시드 선수들이 서로 다른 팀에 배정되었습니다.</p>
-          </div>
-        </div>
-        
         <div class="matches-grid">
           <div
             v-for="(match, index) in kdkMatchesByGroup.get(selectedViewGroupId)"
@@ -565,45 +553,11 @@ const generateKDKBracket = () => {
     // 시드 충돌 검증
     if (hasSeeds) {
       match.hasSeedConflict = checkSeedConflict(match, selectedSeeds.value)
-      
-      // 디버깅: 15명일 때 상세 로그 출력
-      if (originalPlayers.length === 15 && index < 15) {
-        const team1SeedIndices = team1Indices.filter(idx => recommendedSeedIndices[15] && recommendedSeedIndices[15].includes(idx))
-        const team2SeedIndices = team2Indices.filter(idx => recommendedSeedIndices[15] && recommendedSeedIndices[15].includes(idx))
-        console.log(`게임 ${index + 1} (${matchStr}):`, {
-          team1Str: team1Str,
-          team2Str: team2Str,
-          team1Indices: team1Indices,
-          team2Indices: team2Indices,
-          team1Players: [match.team1Player1, match.team1Player2],
-          team2Players: [match.team2Player1, match.team2Player2],
-          team1Seeds: [match.team1Player1, match.team1Player2].filter(p => selectedSeeds.value.includes(p)),
-          team2Seeds: [match.team2Player1, match.team2Player2].filter(p => selectedSeeds.value.includes(p)),
-          team1SeedIndices: team1SeedIndices,
-          team2SeedIndices: team2SeedIndices,
-          hasConflict: match.hasSeedConflict
-        })
-      }
     }
     
     return match
   })
   
-  // 시드 배정 확인 로그
-  if (hasSeeds && originalPlayers.length === 15) {
-    const recommendedIndices = recommendedSeedIndices[15] || []
-    console.log('=== 15명 시드 배정 확인 ===')
-    console.log('선택된 시드 선수:', selectedSeeds.value)
-    console.log('권장 시드 인덱스:', recommendedIndices)
-    console.log('전체 선수 배열:', players)
-    console.log('시드 위치별 선수:')
-    recommendedIndices.forEach((idx, i) => {
-      const playerNum = idx < 9 ? idx + 1 : String.fromCharCode('A'.charCodeAt(0) + (idx - 9))
-      console.log(`  시드 위치 ${idx} (${playerNum}번, ${i + 1}번째 시드): ${players[idx]}`)
-    })
-    console.log('========================')
-  }
-
   // 시드 선수들이 서로 팀이 되지 않도록 검증
   if (hasSeeds && selectedSeeds.value.length >= 2) {
     let hasSeedConflict = false
@@ -618,27 +572,6 @@ const generateKDKBracket = () => {
     
     // 시드 충돌이 발생하면 상세 정보를 로그에 출력
     if (hasSeedConflict) {
-      // 충돌이 발생한 매치의 상세 정보 수집
-      const conflictDetails = matches
-        .filter(m => m.hasSeedConflict)
-        .map(m => {
-          const team1Seeds = [m.team1Player1, m.team1Player2].filter(p => selectedSeeds.value.includes(p))
-          const team2Seeds = [m.team2Player1, m.team2Player2].filter(p => selectedSeeds.value.includes(p))
-          return {
-            game: m.id,
-            team1Seeds: team1Seeds,
-            team2Seeds: team2Seeds
-          }
-        })
-      
-      console.error('시드 배정 오류: 시드 선수들이 같은 팀에 배정되었습니다.', {
-        playerCount: originalPlayers.length,
-        selectedSeeds: selectedSeeds.value,
-        recommendedIndices: recommendedSeedIndices[originalPlayers.length],
-        conflictMatches: conflictMatches,
-        conflictDetails: conflictDetails,
-        players: players
-      })
       alert(`시드 선수들이 같은 팀에 배정되었습니다.\n충돌이 발생한 경기: ${conflictMatches.join(', ')}\n시드 배정을 다시 확인해주세요.`)
       return // 대진표 생성 중단
     }
