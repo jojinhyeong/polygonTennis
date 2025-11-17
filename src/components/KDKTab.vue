@@ -108,20 +108,31 @@
         </div>
         
         <div class="summary-section">
-          <div class="summary-header" @click="toggleResultsTable">
+          <div class="summary-header">
             <h3 class="summary-title">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M3 3h18v18H3zM3 9h18M9 3v18"></path>
               </svg>
               경기 결과
             </h3>
-            <button class="toggle-btn" :class="{ 'collapsed': !showResultsTable }">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
+          </div>
+          <div class="results-tabs">
+            <button 
+              class="results-tab-btn" 
+              :class="{ active: resultsTab === 'full' }"
+              @click="resultsTab = 'full'"
+            >
+              경기결과
+            </button>
+            <button 
+              class="results-tab-btn" 
+              :class="{ active: resultsTab === 'summary' }"
+              @click="resultsTab = 'summary'"
+            >
+              경기요약
             </button>
           </div>
-          <div v-show="showResultsTable" class="summary-table-container">
+          <div v-show="resultsTab === 'full'" class="summary-table-container">
             <table class="summary-table">
               <thead>
                 <tr>
@@ -163,6 +174,26 @@
                     {{ result.pointDiff > 0 ? '+' : '' }}{{ result.pointDiff }}
                   </td>
                   <td class="rank-cell">{{ result.rank }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-show="resultsTab === 'summary'" class="summary-table-container">
+            <table class="summary-table summary-table-simple">
+              <thead>
+                <tr>
+                  <th>순위</th>
+                  <th>선수</th>
+                  <th>승</th>
+                  <th>패</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="result in matchResults" :key="result.player">
+                  <td class="rank-cell" :class="getRankClass(result.rank)">{{ result.rank }}</td>
+                  <td class="player-cell player-cell-center">{{ result.player }}</td>
+                  <td class="win-cell">{{ result.wins }}</td>
+                  <td class="loss-cell">{{ result.losses }}</td>
                 </tr>
               </tbody>
             </table>
@@ -272,7 +303,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, watch } from 'vue'
+import { ref, computed, defineProps, watch, onMounted } from 'vue'
 import SelectInput from './SelectInput.vue'
 
 const props = defineProps({
@@ -285,7 +316,7 @@ const props = defineProps({
 const selectedGroupId = ref('')
 const kdkMatchesByGroup = ref(new Map())
 const selectedViewGroupId = ref(null)
-const showResultsTable = ref(true) // 경기 결과 표 표시 여부
+const resultsTab = ref('full') // 'full' 또는 'summary'
 const selectedSeeds = ref([]) // 시드로 선택된 선수들
 
 // 인원수별 권장 시드 번호 (이미지 참고)
@@ -360,11 +391,154 @@ const clearSeeds = () => {
 // 그룹 변경 시 시드 초기화
 watch(selectedGroupId, () => {
   selectedSeeds.value = []
+  // 그룹별 시드 정보 불러오기
+  loadSeedsForGroup(selectedGroupId.value)
 })
 
-const toggleResultsTable = () => {
-  showResultsTable.value = !showResultsTable.value
+// 로컬스토리지에 저장
+const saveKDKTabState = () => {
+  try {
+    const state = {
+      kdkMatchesByGroup: Object.fromEntries(kdkMatchesByGroup.value),
+      selectedViewGroupId: selectedViewGroupId.value,
+      seedsByGroup: {} // 그룹별 시드 정보 저장
+    }
+    
+    // 각 그룹별 시드 정보 저장
+    props.groups.forEach(group => {
+      const saved = localStorage.getItem(`polygonTennis_kdkSeeds_${group.id}`)
+      if (saved) {
+        try {
+          state.seedsByGroup[group.id] = JSON.parse(saved)
+        } catch (e) {
+          // 무시
+        }
+      }
+    })
+    
+    localStorage.setItem('polygonTennis_kdkTab', JSON.stringify(state))
+  } catch (error) {
+    console.error('한울AA 탭 데이터 저장 실패:', error)
+  }
 }
+
+// 그룹별 시드 정보 저장
+const saveSeedsForGroup = (groupId) => {
+  if (!groupId) return
+  try {
+    localStorage.setItem(`polygonTennis_kdkSeeds_${groupId}`, JSON.stringify(selectedSeeds.value))
+  } catch (error) {
+    console.error('시드 정보 저장 실패:', error)
+  }
+}
+
+// 그룹별 시드 정보 불러오기
+const loadSeedsForGroup = (groupId) => {
+  if (!groupId) {
+    selectedSeeds.value = []
+    return
+  }
+  try {
+    const saved = localStorage.getItem(`polygonTennis_kdkSeeds_${groupId}`)
+    if (saved) {
+      selectedSeeds.value = JSON.parse(saved)
+    } else {
+      selectedSeeds.value = []
+    }
+  } catch (error) {
+    console.error('시드 정보 불러오기 실패:', error)
+    selectedSeeds.value = []
+  }
+}
+
+// 로컬스토리지에서 불러오기
+const loadKDKTabState = () => {
+  try {
+    const saved = localStorage.getItem('polygonTennis_kdkTab')
+    if (saved) {
+      const state = JSON.parse(saved)
+      if (state.kdkMatchesByGroup) {
+        // 실제로 존재하는 그룹만 필터링
+        const validMatches = new Map()
+        Object.entries(state.kdkMatchesByGroup).forEach(([groupId, matches]) => {
+          const groupIdNum = typeof groupId === 'string' ? parseInt(groupId) : groupId
+          const group = props.groups.find(g => g.id === groupIdNum)
+          if (group) {
+            validMatches.set(groupIdNum, matches)
+          }
+        })
+        kdkMatchesByGroup.value = validMatches
+        
+        // selectedViewGroupId도 실제 존재하는 그룹인지 확인
+        if (state.selectedViewGroupId) {
+          const groupIdNum = typeof state.selectedViewGroupId === 'string' 
+            ? parseInt(state.selectedViewGroupId) 
+            : state.selectedViewGroupId
+          const group = props.groups.find(g => g.id === groupIdNum)
+          if (group && validMatches.has(groupIdNum)) {
+            selectedViewGroupId.value = groupIdNum
+          } else if (validMatches.size > 0) {
+            // 선택된 그룹이 없으면 첫 번째 유효한 그룹 선택
+            selectedViewGroupId.value = Array.from(validMatches.keys())[0]
+          } else {
+            selectedViewGroupId.value = null
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('한울AA 탭 데이터 불러오기 실패:', error)
+  }
+}
+
+// kdkMatchesByGroup 변경 시 저장
+watch(kdkMatchesByGroup, () => {
+  saveKDKTabState()
+}, { deep: true })
+
+// selectedViewGroupId 변경 시 저장
+watch(selectedViewGroupId, () => {
+  saveKDKTabState()
+})
+
+// selectedSeeds 변경 시 저장
+watch(selectedSeeds, () => {
+  saveSeedsForGroup(selectedGroupId.value)
+}, { deep: true })
+
+// groups가 변경될 때 유효성 재검증
+watch(() => props.groups, () => {
+  // 실제로 존재하는 그룹만 유지
+  const validMatches = new Map()
+  kdkMatchesByGroup.value.forEach((matches, groupId) => {
+    const group = props.groups.find(g => g.id === groupId)
+    if (group) {
+      validMatches.set(groupId, matches)
+    }
+  })
+  kdkMatchesByGroup.value = validMatches
+  
+  // selectedViewGroupId도 재검증
+  if (selectedViewGroupId.value) {
+    const group = props.groups.find(g => g.id === selectedViewGroupId.value)
+    if (!group || !validMatches.has(selectedViewGroupId.value)) {
+      if (validMatches.size > 0) {
+        selectedViewGroupId.value = Array.from(validMatches.keys())[0]
+      } else {
+        selectedViewGroupId.value = null
+      }
+    }
+  }
+}, { deep: true })
+
+// 컴포넌트 마운트 시 불러오기
+onMounted(() => {
+  loadKDKTabState()
+  if (selectedGroupId.value) {
+    loadSeedsForGroup(selectedGroupId.value)
+  }
+})
+
 
 // 시드 충돌 검증
 const hasSeedConflicts = computed(() => {
@@ -579,6 +753,9 @@ const generateKDKBracket = () => {
 
   kdkMatchesByGroup.value.set(group.id, matches)
   selectedViewGroupId.value = group.id
+  
+  // 로컬스토리지에 저장
+  saveKDKTabState()
 }
 
 const updateScore = (match) => {
@@ -608,6 +785,15 @@ const formatSetScore = (set) => {
   if (!set || (set.team1 === null && set.team2 === null)) return '-'
   if (set.team1 === null || set.team2 === null) return '-'
   return `${set.team1}:${set.team2}`
+}
+
+// 순위별 클래스 반환
+const getRankClass = (rank) => {
+  if (rank === 1) return 'rank-1'
+  if (rank === 2) return 'rank-2'
+  if (rank === 3) return 'rank-3'
+  if (rank === 4) return 'rank-4'
+  return 'rank-default'
 }
 
 // 경기 결과 계산
@@ -982,18 +1168,6 @@ const matchResults = computed(() => {
   position: relative;
 }
 
-.match-card.has-winner::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #4CAF50, #66BB6A, #4CAF50);
-  border-radius: 12px 12px 0 0;
-  animation: winnerShine 3s ease-in-out infinite;
-}
-
 .match-number.winner-number {
   color: #1B5E20;
   font-weight: 800;
@@ -1008,15 +1182,6 @@ const matchResults = computed(() => {
   color: #4CAF50;
   font-size: 0.7rem;
   animation: winnerCheck 1.5s ease-in-out infinite;
-}
-
-@keyframes winnerShine {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
 }
 
 @keyframes winnerCheck {
@@ -1181,25 +1346,17 @@ const matchResults = computed(() => {
   margin-bottom: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(76, 175, 80, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .summary-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
   border-bottom: 2px solid rgba(76, 175, 80, 0.1);
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.3s ease;
-  padding: 0.5rem;
-  margin: -0.5rem -0.5rem 0.75rem -0.5rem;
-  border-radius: 8px;
-}
-
-.summary-header:hover {
-  background: rgba(76, 175, 80, 0.05);
 }
 
 .summary-title {
@@ -1210,28 +1367,39 @@ const matchResults = computed(() => {
   font-weight: 700;
   color: #2E7D32;
   margin: 0;
-  flex: 1;
 }
 
-.toggle-btn {
+.results-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid rgba(76, 175, 80, 0.1);
+}
+
+.results-tab-btn {
+  padding: 0.625rem 1rem;
   background: none;
   border: none;
-  padding: 0.25rem;
+  border-bottom: 3px solid transparent;
+  color: #666;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  position: relative;
+  bottom: -2px;
+}
+
+.results-tab-btn:hover {
   color: #4CAF50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
-  border-radius: 4px;
+  background: rgba(76, 175, 80, 0.05);
 }
 
-.toggle-btn:hover {
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.toggle-btn.collapsed {
-  transform: rotate(180deg);
+.results-tab-btn.active {
+  color: #2E7D32;
+  border-bottom-color: #4CAF50;
+  font-weight: 700;
 }
 
 .summary-title svg {
@@ -1243,6 +1411,7 @@ const matchResults = computed(() => {
   -webkit-overflow-scrolling: touch;
   width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 .summary-table {
@@ -1251,6 +1420,66 @@ const matchResults = computed(() => {
   border-collapse: collapse;
   font-size: 0.8rem;
   table-layout: auto;
+}
+
+.summary-table-simple {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.summary-table-simple th,
+.summary-table-simple td {
+  padding: 0.5rem 0.375rem;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  text-align: center !important;
+}
+
+.summary-table-simple .player-cell {
+  text-align: center !important;
+}
+
+.summary-table-simple .rank-cell {
+  text-align: center !important;
+}
+
+.summary-table-simple .win-cell,
+.summary-table-simple .loss-cell {
+  text-align: center !important;
+}
+
+.summary-table-simple th:first-child,
+.summary-table-simple td:first-child {
+  width: 15%;
+  text-align: center !important;
+  padding: 0.5rem 0.375rem;
+}
+
+.summary-table-simple td:first-child {
+  text-align: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0.5rem 0.375rem !important;
+}
+
+.summary-table-simple td:first-child .rank-cell {
+  display: inline-flex;
+  margin: 0;
+}
+
+.summary-table-simple th:nth-child(2),
+.summary-table-simple td:nth-child(2) {
+  width: 45%;
+}
+
+.summary-table-simple th:nth-child(3),
+.summary-table-simple td:nth-child(3),
+.summary-table-simple th:nth-child(4),
+.summary-table-simple td:nth-child(4) {
+  width: 20%;
 }
 
 .summary-table thead {
@@ -1376,6 +1605,123 @@ const matchResults = computed(() => {
   font-weight: 700;
   font-size: 0.9rem;
   color: #2E7D32;
+  text-align: center;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  transition: all 0.3s ease;
+  position: relative;
+  margin: 0 auto;
+}
+
+.rank-cell.rank-1 {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #8B4513;
+  font-weight: 900;
+  font-size: 1rem;
+  box-shadow: 
+    0 4px 12px rgba(255, 215, 0, 0.4),
+    0 0 0 2px rgba(255, 215, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: rank1Glow 2s ease-in-out infinite;
+  transform: scale(1.05);
+  width: auto;
+  min-width: 40px;
+}
+
+.rank-cell.rank-2 {
+  background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+  color: #2C2C2C;
+  font-weight: 800;
+  font-size: 0.95rem;
+  box-shadow: 
+    0 3px 10px rgba(192, 192, 192, 0.3),
+    0 0 0 2px rgba(192, 192, 192, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: rank2Shine 2.5s ease-in-out infinite;
+}
+
+.rank-cell.rank-3 {
+  background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%);
+  color: #3E2723;
+  font-weight: 800;
+  font-size: 0.95rem;
+  box-shadow: 
+    0 3px 10px rgba(205, 127, 50, 0.3),
+    0 0 0 2px rgba(205, 127, 50, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: rank3Pulse 2s ease-in-out infinite;
+}
+
+.rank-cell.rank-4 {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(102, 187, 106, 0.3) 100%);
+  color: #1B5E20;
+  font-weight: 800;
+  font-size: 0.9rem;
+  box-shadow: 
+    0 2px 8px rgba(76, 175, 80, 0.25),
+    0 0 0 2px rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.rank-cell.rank-default {
+  background: rgba(76, 175, 80, 0.05);
+  color: #2E7D32;
+  font-weight: 600;
+}
+
+@keyframes rank1Glow {
+  0%, 100% {
+    box-shadow: 
+      0 4px 12px rgba(255, 215, 0, 0.4),
+      0 0 0 2px rgba(255, 215, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 6px 16px rgba(255, 215, 0, 0.6),
+      0 0 0 3px rgba(255, 215, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+@keyframes rank2Shine {
+  0%, 100% {
+    box-shadow: 
+      0 3px 10px rgba(192, 192, 192, 0.3),
+      0 0 0 2px rgba(192, 192, 192, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 4px 12px rgba(192, 192, 192, 0.4),
+      0 0 0 2px rgba(192, 192, 192, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+@keyframes rank3Pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 3px 10px rgba(205, 127, 50, 0.3),
+      0 0 0 2px rgba(205, 127, 50, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 
+      0 4px 12px rgba(205, 127, 50, 0.4),
+      0 0 0 2px rgba(205, 127, 50, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+.player-cell-center {
+  text-align: center !important;
 }
 
 .partners-cell {

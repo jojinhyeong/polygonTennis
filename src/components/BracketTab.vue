@@ -250,7 +250,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, defineProps, defineEmits, nextTick } from 'vue'
+import { ref, computed, watch, defineProps, defineEmits, nextTick, onMounted } from 'vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
 
@@ -593,8 +593,104 @@ const generateBracketFromSelected = () => {
   // 모달 닫기
   closeTeamSelectModal()
 
+  // 로컬스토리지에 저장
+  saveBracketTabState()
+
   emit('update-bracket', Array.from(bracketsByGroup.value.values()))
 }
+
+// 로컬스토리지에 저장
+const saveBracketTabState = () => {
+  try {
+    const state = {
+      bracketsByGroup: Object.fromEntries(bracketsByGroup.value),
+      selectedViewGroupId: selectedViewGroupId.value
+    }
+    localStorage.setItem('polygonTennis_bracketTab', JSON.stringify(state))
+  } catch (error) {
+    console.error('팀선택 탭 데이터 저장 실패:', error)
+  }
+}
+
+// 로컬스토리지에서 불러오기
+const loadBracketTabState = () => {
+  try {
+    const saved = localStorage.getItem('polygonTennis_bracketTab')
+    if (saved) {
+      const state = JSON.parse(saved)
+      if (state.bracketsByGroup) {
+        // 실제로 존재하는 그룹만 필터링
+        const validBrackets = new Map()
+        Object.entries(state.bracketsByGroup).forEach(([groupId, bracket]) => {
+          const groupIdNum = typeof groupId === 'string' ? parseInt(groupId) : groupId
+          const group = props.groups.find(g => g.id === groupIdNum)
+          if (group) {
+            validBrackets.set(groupIdNum, bracket)
+          }
+        })
+        bracketsByGroup.value = validBrackets
+        
+        // selectedViewGroupId도 실제 존재하는 그룹인지 확인
+        if (state.selectedViewGroupId) {
+          const groupIdNum = typeof state.selectedViewGroupId === 'string' 
+            ? parseInt(state.selectedViewGroupId) 
+            : state.selectedViewGroupId
+          const group = props.groups.find(g => g.id === groupIdNum)
+          if (group && validBrackets.has(groupIdNum)) {
+            selectedViewGroupId.value = groupIdNum
+          } else if (validBrackets.size > 0) {
+            // 선택된 그룹이 없으면 첫 번째 유효한 그룹 선택
+            selectedViewGroupId.value = Array.from(validBrackets.keys())[0]
+          } else {
+            selectedViewGroupId.value = null
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('팀선택 탭 데이터 불러오기 실패:', error)
+  }
+}
+
+// bracketsByGroup 변경 시 저장
+watch(bracketsByGroup, () => {
+  saveBracketTabState()
+}, { deep: true })
+
+// selectedViewGroupId 변경 시 저장
+watch(selectedViewGroupId, () => {
+  saveBracketTabState()
+})
+
+// groups가 변경될 때 유효성 재검증
+watch(() => props.groups, () => {
+  // 실제로 존재하는 그룹만 유지
+  const validBrackets = new Map()
+  bracketsByGroup.value.forEach((bracket, groupId) => {
+    const group = props.groups.find(g => g.id === groupId)
+    if (group) {
+      validBrackets.set(groupId, bracket)
+    }
+  })
+  bracketsByGroup.value = validBrackets
+  
+  // selectedViewGroupId도 재검증
+  if (selectedViewGroupId.value) {
+    const group = props.groups.find(g => g.id === selectedViewGroupId.value)
+    if (!group || !validBrackets.has(selectedViewGroupId.value)) {
+      if (validBrackets.size > 0) {
+        selectedViewGroupId.value = Array.from(validBrackets.keys())[0]
+      } else {
+        selectedViewGroupId.value = null
+      }
+    }
+  }
+}, { deep: true })
+
+// 컴포넌트 마운트 시 불러오기
+onMounted(() => {
+  loadBracketTabState()
+})
 
 
 const createDoubleBracket = (players) => {
