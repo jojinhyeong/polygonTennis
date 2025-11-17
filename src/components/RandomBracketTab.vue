@@ -21,16 +21,12 @@
             </svg>
             그룹 선택
           </label>
-          <select v-model="selectedGroupId" class="select-input">
-            <option value="">그룹 선택</option>
-            <option
-              v-for="group in groups"
-              :key="group.id"
-              :value="group.id"
-            >
-              {{ group.name }} ({{ group.players.length }}명)
-            </option>
-          </select>
+          <SelectInput
+            v-model="selectedGroupId"
+            :options="groups"
+            placeholder="그룹 선택"
+            :label-formatter="(group) => `${group.name} (${group.players.length}명)`"
+          />
         </div>
         <button class="generate-random-btn" @click="generateRandomBracket">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -78,6 +74,7 @@
 <script setup>
 import { ref, computed, defineProps, defineEmits } from 'vue'
 import BracketDisplay from './BracketDisplay.vue'
+import SelectInput from './SelectInput.vue'
 
 const props = defineProps({
   groups: {
@@ -300,25 +297,26 @@ const createDoubleBracket = (players) => {
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #f3f4f6;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.1);
 }
 
 .header-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
 }
 
 .controls-title {
-  font-size: 1.25rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #2E7D32;
   margin: 0;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
 }
@@ -330,6 +328,9 @@ const createDoubleBracket = (players) => {
 }
 
 .control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   width: 100%;
 }
 
@@ -337,46 +338,19 @@ const createDoubleBracket = (players) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
   font-weight: 600;
-  color: #374151;
-  font-size: 0.95rem;
+  color: #2E7D32;
+  font-size: 0.8rem;
 }
 
 .control-label svg {
   color: #4CAF50;
 }
 
-.select-input {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 1rem;
-  background: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  outline: none;
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23f5576c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  padding-right: 3rem;
-}
-
-.select-input:hover {
-  border-color: #d1d5db;
-}
-
-.select-input:focus {
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
-}
 
 .generate-random-btn {
   padding: 0.875rem 1.25rem;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
   border: none;
   border-radius: 12px;
@@ -388,17 +362,21 @@ const createDoubleBracket = (players) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  min-height: 48px;
 }
 
-.generate-random-btn:hover {
+.generate-random-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.generate-random-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .generate-random-btn:active {
@@ -457,40 +435,30 @@ const createDoubleBracket = (players) => {
 }
 
 .empty-state {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 24px;
-  padding: 2rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
   text-align: center;
-  box-shadow: 
-    0 4px 6px rgba(0, 0, 0, 0.05),
-    0 10px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(20px);
 }
 
 .empty-icon {
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 1.25rem;
-  border-radius: 18px;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(102, 187, 106, 0.15) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4CAF50;
+  color: rgba(76, 175, 80, 0.3);
+  margin-bottom: 1rem;
 }
 
 .empty-state h3 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #2E7D32;
   margin: 0 0 0.5rem 0;
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
 }
 
 .empty-state p {
-  color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  color: #666;
   margin: 0;
 }
 

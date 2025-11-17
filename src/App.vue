@@ -58,6 +58,11 @@
           @generate-random="generateRandomBracket"
           key="random"
         />
+        <KDKTab
+          v-if="activeTab === 'kdk'"
+          :groups="groups"
+          key="kdk"
+        />
       </div>
 
       <!-- 그룹 선택 모달 -->
@@ -140,10 +145,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import GroupManager from './components/GroupManager.vue'
 import BracketTab from './components/BracketTab.vue'
 import RandomBracketTab from './components/RandomBracketTab.vue'
+import KDKTab from './components/KDKTab.vue'
 
 const activeTab = ref('groups')
 const showGroupSelectModal = ref(false)
@@ -245,16 +251,58 @@ const tabs = [
     id: 'random', 
     label: '팀 랜덤',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>'
+  },
+  { 
+    id: 'kdk', 
+    label: '한울AA',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>'
   }
 ]
 
-const groups = ref([
-  {
-    id: 1,
-    name: '그룹 1',
-    players: []
+// 로컬스토리지에서 그룹 불러오기
+const loadGroupsFromStorage = () => {
+  try {
+    const savedGroups = localStorage.getItem('polygonTennis_groups')
+    if (savedGroups) {
+      const parsed = JSON.parse(savedGroups)
+      // 유효성 검사: 배열이고 최소 1개 이상인지 확인
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+      }
+    }
+  } catch (error) {
+    console.error('그룹 데이터 불러오기 실패:', error)
   }
-])
+  // 기본값 반환
+  return [
+    {
+      id: 1,
+      name: '그룹 1',
+      players: []
+    }
+  ]
+}
+
+// 그룹을 로컬스토리지에 저장
+const saveGroupsToStorage = () => {
+  try {
+    localStorage.setItem('polygonTennis_groups', JSON.stringify(groups.value))
+  } catch (error) {
+    console.error('그룹 데이터 저장 실패:', error)
+  }
+}
+
+const groups = ref(loadGroupsFromStorage())
+
+// 그룹이 변경될 때마다 자동 저장
+watch(groups, () => {
+  saveGroupsToStorage()
+}, { deep: true })
+
+// 컴포넌트 마운트 시 저장 (초기 로드 후)
+onMounted(() => {
+  saveGroupsToStorage()
+})
 
 const addGroup = () => {
   const newGroupId = groups.value.length > 0 
@@ -265,11 +313,15 @@ const addGroup = () => {
     name: `그룹 ${newGroupId}`,
     players: []
   })
+  // watch가 자동으로 저장하지만, 명시적으로도 저장
+  saveGroupsToStorage()
 }
 
 const removeGroup = (groupId) => {
   if (groups.value.length > 1) {
     groups.value = groups.value.filter(g => g.id !== groupId)
+    // watch가 자동으로 저장하지만, 명시적으로도 저장
+    saveGroupsToStorage()
   } else {
     alert('최소 1개의 그룹이 필요합니다.')
   }
@@ -279,6 +331,8 @@ const updateGroup = (groupId, updatedGroup) => {
   const index = groups.value.findIndex(g => g.id === groupId)
   if (index !== -1) {
     groups.value[index] = { ...groups.value[index], ...updatedGroup }
+    // watch가 자동으로 저장하지만, 명시적으로도 저장
+    saveGroupsToStorage()
   }
 }
 

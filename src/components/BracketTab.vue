@@ -22,16 +22,12 @@
             그룹 선택
           </label>
           <div class="select-wrapper">
-            <select v-model="selectedGroupId" class="select-input">
-              <option value="">그룹 선택</option>
-              <option
-                v-for="group in groups"
-                :key="group.id"
-                :value="group.id"
-              >
-                {{ group.name }} ({{ group.players.length }}명)
-              </option>
-            </select>
+            <SelectInput
+              v-model="selectedGroupId"
+              :options="groups"
+              placeholder="그룹 선택"
+              :label-formatter="(group) => `${group.name} (${group.players.length}명)`"
+            />
           </div>
         </div>
         <button class="generate-btn" @click="openTeamSelectModal">
@@ -211,6 +207,7 @@
 <script setup>
 import { ref, computed, watch, defineProps, defineEmits, nextTick } from 'vue'
 import BracketDisplay from './BracketDisplay.vue'
+import SelectInput from './SelectInput.vue'
 
 const props = defineProps({
   groups: {
@@ -544,18 +541,15 @@ const createDoubleBracket = (players) => {
 }
 
 .bracket-controls {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
   padding: 1.25rem 1rem;
   margin-bottom: 1rem;
   box-shadow: 
-    0 8px 32px rgba(76, 175, 80, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(76, 175, 80, 0.2);
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(20px);
-  position: relative;
-  overflow: hidden;
 }
 
 .bracket-controls::before {
@@ -576,22 +570,20 @@ const createDoubleBracket = (players) => {
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid rgba(76, 175, 80, 0.1);
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.1);
 }
 
 .header-icon {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  border-radius: 14px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 
-    0 8px 24px rgba(76, 175, 80, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -618,8 +610,8 @@ const createDoubleBracket = (players) => {
 }
 
 .controls-title {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: #2E7D32;
   margin: 0;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -633,27 +625,24 @@ const createDoubleBracket = (players) => {
 }
 
 .control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   width: 100%;
 }
 
 .control-label {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  font-weight: 700;
-  color: #1f2937;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #2E7D32;
+  font-size: 0.8rem;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  margin-bottom: 0.75rem;
 }
 
 .control-label svg {
   color: #4CAF50;
-  width: 20px;
-  height: 20px;
-  filter: drop-shadow(0 2px 4px rgba(76, 175, 80, 0.3));
 }
 
 .select-wrapper {
@@ -662,139 +651,40 @@ const createDoubleBracket = (players) => {
   z-index: 10;
 }
 
-.select-input {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  border: 2px solid rgba(76, 175, 80, 0.2);
-  border-radius: 14px;
-  font-size: 0.95rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  outline: none;
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  font-weight: 500;
-  color: #1f2937;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='14' height='8' viewBox='0 0 14 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%23a78bfa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1.25rem center;
-  padding-right: 3.5rem;
-  box-shadow: 
-    0 2px 8px rgba(76, 175, 80, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  position: relative;
-}
-
-.select-input option {
-  padding: 0.875rem 1.25rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.98) 100%);
-  color: #1f2937;
-  font-weight: 500;
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  font-size: 0.95rem;
-  border: none;
-  border-radius: 0;
-  transition: all 0.2s ease;
-}
-
-.select-input option:hover {
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
-  color: #1f2937;
-}
-
-.select-input option:checked,
-.select-input option:focus {
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  color: white;
-  font-weight: 600;
-}
-
-.select-input:focus {
-  z-index: 100;
-  border-color: #4CAF50;
-}
-
-.select-input:hover {
-  border-color: rgba(76, 175, 80, 0.4);
-  box-shadow: 
-    0 4px 12px rgba(76, 175, 80, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  transform: translateY(-1px);
-}
-
-.select-input:focus {
-  border-color: #4CAF50;
-  box-shadow: 
-    0 0 0 4px rgba(76, 175, 80, 0.2),
-    0 4px 16px rgba(76, 175, 80, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  transform: translateY(-1px);
-}
 
 .generate-btn {
   width: 100%;
   padding: 0.875rem 1.25rem;
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
   border: none;
-  border-radius: 16px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  box-shadow: 
-    0 8px 24px rgba(76, 175, 80, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  min-height: 48px;
-  position: relative;
-  overflow: hidden;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
-.generate-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s;
-}
-
-.generate-btn:hover::before {
-  left: 100%;
-}
-
-.generate-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 
-    0 12px 32px rgba(76, 175, 80, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+.generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
 }
 
 .generate-btn:active {
-  transform: translateY(-1px);
-  box-shadow: 
-    0 6px 20px rgba(76, 175, 80, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(0);
 }
 
-.generate-btn svg {
-  width: 22px;
-  height: 22px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+.generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .brackets-container {
@@ -959,64 +849,31 @@ const createDoubleBracket = (players) => {
 }
 
 .empty-state {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
-  border-radius: 24px;
-  padding: 2rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
   text-align: center;
-  box-shadow: 
-    0 8px 32px rgba(76, 175, 80, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(76, 175, 80, 0.2);
-  backdrop-filter: blur(20px);
-  animation: fadeInUp 0.6s ease-out;
 }
 
 .empty-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 1.5rem;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(102, 187, 106, 0.2) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4CAF50;
-  box-shadow: 
-    0 8px 24px rgba(76, 175, 80, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.9;
-  }
+  color: rgba(76, 175, 80, 0.3);
+  margin-bottom: 1rem;
 }
 
 .empty-state h3 {
   font-size: 1.1rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 700;
+  color: #2E7D32;
   margin: 0 0 0.5rem 0;
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  letter-spacing: -0.02em;
 }
 
 .empty-state p {
-  color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  color: #666;
   margin: 0;
-  line-height: 1.5;
-  font-weight: 500;
 }
 
 /* 태블릿 */
