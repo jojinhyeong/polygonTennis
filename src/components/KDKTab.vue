@@ -310,8 +310,8 @@ const recommendedSeedIndices = {
   11: [0, 4, 7, 8], // 1,5,8,9
   12: [1, 2, 7, 9], // 2,3,8,A
   13: [0, 3, 5, 11], // 1,4,6,B
-  14: [1, 4, 7, 12], // 2,5,8,C
-  15: [0, 3, 4, 9, 13], // 1,4,5,A,D
+  14: [1, 4, 7, 11], // 2,5,8,C (C는 12번째 선수, 인덱스 11)
+  15: [0, 3, 4, 9, 12], // 1,4,5,A,D (D는 13번째 선수, 인덱스 12)
   16: [0, 5, 10, 15, 6, 9] // 1,6,B,G,7,A (1=0, 6=5, B=10, G=15, 7=6, A=9)
 }
 
@@ -450,9 +450,9 @@ const generateKDKBracket = () => {
     const playerCount = originalPlayers.length
     const recommendedIndices = recommendedSeedIndices[playerCount] || []
     
-    // 시드 선수 개수가 권장 개수와 일치하는지 확인
-    if (seedPlayers.length !== recommendedIndices.length) {
-      alert(`시드 선수 개수가 권장 개수(${recommendedIndices.length}명)와 일치하지 않습니다.\n권장 시드 개수에 맞춰 선택해주세요.`)
+    // 시드 선수 개수가 권장 개수보다 많은지 확인
+    if (seedPlayers.length > recommendedIndices.length) {
+      alert(`시드 선수 개수가 권장 개수(${recommendedIndices.length}명)를 초과합니다.\n권장 시드 개수 이하로 선택해주세요.`)
       return
     }
     
@@ -460,8 +460,8 @@ const generateKDKBracket = () => {
     players = new Array(playerCount).fill(null)
     const shuffledNonSeeds = shuffleArray(nonSeedPlayers)
     
-    // 1단계: 시드 선수들을 권장 위치에 정확히 배정
-    for (let i = 0; i < recommendedIndices.length; i++) {
+    // 1단계: 선택된 시드 선수들을 권장 위치의 앞부분에 배정
+    for (let i = 0; i < seedPlayers.length; i++) {
       const seedPosition = recommendedIndices[i]
       // 배열 범위 체크
       if (seedPosition >= 0 && seedPosition < playerCount) {
@@ -473,8 +473,16 @@ const generateKDKBracket = () => {
       }
     }
     
-    // 2단계: 나머지 위치에 비시드 선수들을 랜덤으로 배정
+    // 2단계: 나머지 권장 시드 위치에 비시드 선수 배정 (시드 개수가 권장보다 적은 경우)
     let nonSeedIndex = 0
+    for (let i = seedPlayers.length; i < recommendedIndices.length; i++) {
+      const seedPosition = recommendedIndices[i]
+      if (seedPosition >= 0 && seedPosition < playerCount && players[seedPosition] === null) {
+        players[seedPosition] = shuffledNonSeeds[nonSeedIndex++]
+      }
+    }
+    
+    // 3단계: 나머지 모든 위치에 비시드 선수들을 랜덤으로 배정
     for (let i = 0; i < playerCount; i++) {
       if (players[i] === null) {
         players[i] = shuffledNonSeeds[nonSeedIndex++]
@@ -507,7 +515,15 @@ const generateKDKBracket = () => {
         indices.push(parseInt(str[i]) - 1)
         i++
       } else if (str[i] >= 'A' && str[i] <= 'Z') {
-        indices.push(str[i].charCodeAt(0) - 'A'.charCodeAt(0) + 9)
+        // A=10번째 선수(인덱스9), B=11번째(인덱스10), ..., E=14번째(인덱스13), F=15번째(인덱스14)
+        // 하지만 15명이면 E는 15번째 선수(인덱스14)가 맞음
+        // A=10이므로 인덱스는 9, B=11이므로 인덱스는 10, ..., E=14이므로 인덱스는 13
+        // 실제로는: A=10(인덱스9), B=11(인덱스10), C=12(인덱스11), D=13(인덱스12), E=14(인덱스13)
+        // 그런데 15명이면 E는 15번째 선수이므로 인덱스는 14여야 함
+        // 하지만 대진표에서 E는 14번째 선수를 의미하므로 인덱스는 13이 맞음
+        const charIndex = str[i].charCodeAt(0) - 'A'.charCodeAt(0)
+        const playerNumber = 10 + charIndex // A=10, B=11, ..., E=14
+        indices.push(playerNumber - 1) // 인덱스로 변환 (A=9, B=10, ..., E=13)
         i++
       } else {
         i++
@@ -549,25 +565,81 @@ const generateKDKBracket = () => {
     // 시드 충돌 검증
     if (hasSeeds) {
       match.hasSeedConflict = checkSeedConflict(match, selectedSeeds.value)
+      
+      // 디버깅: 15명일 때 상세 로그 출력
+      if (originalPlayers.length === 15 && index < 15) {
+        const team1SeedIndices = team1Indices.filter(idx => recommendedSeedIndices[15] && recommendedSeedIndices[15].includes(idx))
+        const team2SeedIndices = team2Indices.filter(idx => recommendedSeedIndices[15] && recommendedSeedIndices[15].includes(idx))
+        console.log(`게임 ${index + 1} (${matchStr}):`, {
+          team1Str: team1Str,
+          team2Str: team2Str,
+          team1Indices: team1Indices,
+          team2Indices: team2Indices,
+          team1Players: [match.team1Player1, match.team1Player2],
+          team2Players: [match.team2Player1, match.team2Player2],
+          team1Seeds: [match.team1Player1, match.team1Player2].filter(p => selectedSeeds.value.includes(p)),
+          team2Seeds: [match.team2Player1, match.team2Player2].filter(p => selectedSeeds.value.includes(p)),
+          team1SeedIndices: team1SeedIndices,
+          team2SeedIndices: team2SeedIndices,
+          hasConflict: match.hasSeedConflict
+        })
+      }
     }
     
     return match
   })
+  
+  // 시드 배정 확인 로그
+  if (hasSeeds && originalPlayers.length === 15) {
+    const recommendedIndices = recommendedSeedIndices[15] || []
+    console.log('=== 15명 시드 배정 확인 ===')
+    console.log('선택된 시드 선수:', selectedSeeds.value)
+    console.log('권장 시드 인덱스:', recommendedIndices)
+    console.log('전체 선수 배열:', players)
+    console.log('시드 위치별 선수:')
+    recommendedIndices.forEach((idx, i) => {
+      const playerNum = idx < 9 ? idx + 1 : String.fromCharCode('A'.charCodeAt(0) + (idx - 9))
+      console.log(`  시드 위치 ${idx} (${playerNum}번, ${i + 1}번째 시드): ${players[idx]}`)
+    })
+    console.log('========================')
+  }
 
-  // 시드 선수들이 서로 팀이 되지 않도록 검증 (이미 올바른 위치에 배정되었으므로 충돌이 없어야 함)
+  // 시드 선수들이 서로 팀이 되지 않도록 검증
   if (hasSeeds && selectedSeeds.value.length >= 2) {
     let hasSeedConflict = false
+    const conflictMatches = []
+    
     matches.forEach(match => {
       if (match.hasSeedConflict) {
         hasSeedConflict = true
+        conflictMatches.push(match.id)
       }
     })
     
-    // 시드가 올바른 위치에 배정되었다면 충돌이 발생하지 않아야 함
-    // 만약 충돌이 발생한다면 배정 로직에 문제가 있음
+    // 시드 충돌이 발생하면 상세 정보를 로그에 출력
     if (hasSeedConflict) {
-      console.error('시드 배정 오류: 시드 선수들이 올바른 위치에 배정되었는데도 충돌이 발생했습니다.')
-      alert('시드 배정에 오류가 발생했습니다. 다시 시도해주세요.')
+      // 충돌이 발생한 매치의 상세 정보 수집
+      const conflictDetails = matches
+        .filter(m => m.hasSeedConflict)
+        .map(m => {
+          const team1Seeds = [m.team1Player1, m.team1Player2].filter(p => selectedSeeds.value.includes(p))
+          const team2Seeds = [m.team2Player1, m.team2Player2].filter(p => selectedSeeds.value.includes(p))
+          return {
+            game: m.id,
+            team1Seeds: team1Seeds,
+            team2Seeds: team2Seeds
+          }
+        })
+      
+      console.error('시드 배정 오류: 시드 선수들이 같은 팀에 배정되었습니다.', {
+        playerCount: originalPlayers.length,
+        selectedSeeds: selectedSeeds.value,
+        recommendedIndices: recommendedSeedIndices[originalPlayers.length],
+        conflictMatches: conflictMatches,
+        conflictDetails: conflictDetails,
+        players: players
+      })
+      alert(`시드 선수들이 같은 팀에 배정되었습니다.\n충돌이 발생한 경기: ${conflictMatches.join(', ')}\n시드 배정을 다시 확인해주세요.`)
       return // 대진표 생성 중단
     }
   }
