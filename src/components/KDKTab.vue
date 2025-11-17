@@ -28,6 +28,48 @@
             :label-formatter="(group) => `${group.name} (${group.players.length}명)`"
           />
         </div>
+        
+        <!-- 시드 선택 섹션 -->
+        <div v-if="selectedGroupId" class="control-group seed-section">
+          <label class="control-label">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>
+            </svg>
+            시드 선택 (선택사항)
+            <span class="seed-hint">강자끼리 팀이 되지 않도록 설정</span>
+          </label>
+          <div class="seed-selector">
+            <div class="seed-info">
+              <p class="seed-description">
+                실력 차이가 나는 소수의 선수끼리 파트너가 (강강 or 약약) 되는 경우를 피하고 싶을 때 사용합니다.
+              </p>
+              <p class="seed-recommended" v-if="recommendedSeeds.length > 0">
+                권장 시드 개수: {{ recommendedSeeds.length }}명
+              </p>
+            </div>
+            <div class="seed-players-list">
+              <div
+                v-for="(player, index) in availablePlayersForSeeds"
+                :key="index"
+                class="seed-player-item"
+              >
+                <label class="seed-checkbox">
+                  <input
+                    type="checkbox"
+                    :value="player"
+                    v-model="selectedSeeds"
+                    :disabled="selectedSeeds.length >= maxSeeds && !selectedSeeds.includes(player)"
+                  />
+                  <span class="seed-checkbox-label">{{ player }}</span>
+                </label>
+              </div>
+            </div>
+            <div v-if="selectedSeeds.length > 0" class="seed-selected-info">
+              <span class="seed-count">선택된 시드: {{ selectedSeeds.length }}명</span>
+              <button class="clear-seeds-btn" @click="clearSeeds">초기화</button>
+            </div>
+          </div>
+        </div>
         <button class="generate-kdk-btn" @click="generateKDKBracket" :disabled="!selectedGroupId">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
@@ -127,6 +169,33 @@
           </div>
         </div>
         
+        <!-- 시드 충돌 검증 결과 표시 -->
+        <div v-if="selectedSeeds.length > 0 && hasSeedConflicts" class="seed-conflict-alert">
+          <div class="alert-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="alert-content">
+            <strong>시드 충돌 감지</strong>
+            <p>시드 선수들이 같은 팀에 배정된 경기가 {{ seedConflictCount }}개 있습니다. 빨간색으로 표시된 경기를 확인해주세요.</p>
+          </div>
+        </div>
+        
+        <div v-if="selectedSeeds.length > 0 && !hasSeedConflicts" class="seed-valid-alert">
+          <div class="alert-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div class="alert-content">
+            <strong>시드 검증 완료</strong>
+            <p>모든 시드 선수들이 서로 다른 팀에 배정되었습니다.</p>
+          </div>
+        </div>
+        
         <div class="matches-grid">
           <div
             v-for="(match, index) in kdkMatchesByGroup.get(selectedViewGroupId)"
@@ -134,17 +203,30 @@
             class="match-card"
             :class="{ 
               'has-score': match.setScore1 !== null && match.setScore2 !== null,
-              'has-winner': match.winner !== null
+              'has-winner': match.winner !== null,
+              'seed-conflict': match.hasSeedConflict
             }"
           >
             <div class="match-header">
               <span class="match-number" :class="{ 'winner-number': match.winner !== null }">게임 {{ index + 1 }}</span>
             </div>
             <div class="match-body">
-              <div class="team-card" :class="{ winner: match.winner === 'team1' }">
-                <span class="player-name">{{ match.team1Player1 }}</span>
+              <div 
+                class="team-card" 
+                :class="{ 
+                  winner: match.winner === 'team1',
+                  'seed-conflict-team': match.hasSeedConflict && isSeedTeam(match.team1Player1, match.team1Player2)
+                }"
+              >
+                <span 
+                  class="player-name"
+                  :class="{ 'seed-player': selectedSeeds.includes(match.team1Player1) }"
+                >{{ match.team1Player1 }}</span>
                 <span class="player-separator">/</span>
-                <span class="player-name">{{ match.team1Player2 }}</span>
+                <span 
+                  class="player-name"
+                  :class="{ 'seed-player': selectedSeeds.includes(match.team1Player2) }"
+                >{{ match.team1Player2 }}</span>
                 <input
                   v-model.number="match.setScore1"
                   type="number"
@@ -156,10 +238,22 @@
                 />
               </div>
 
-              <div class="team-card" :class="{ winner: match.winner === 'team2' }">
-                <span class="player-name">{{ match.team2Player1 }}</span>
+              <div 
+                class="team-card" 
+                :class="{ 
+                  winner: match.winner === 'team2',
+                  'seed-conflict-team': match.hasSeedConflict && isSeedTeam(match.team2Player1, match.team2Player2)
+                }"
+              >
+                <span 
+                  class="player-name"
+                  :class="{ 'seed-player': selectedSeeds.includes(match.team2Player1) }"
+                >{{ match.team2Player1 }}</span>
                 <span class="player-separator">/</span>
-                <span class="player-name">{{ match.team2Player2 }}</span>
+                <span 
+                  class="player-name"
+                  :class="{ 'seed-player': selectedSeeds.includes(match.team2Player2) }"
+                >{{ match.team2Player2 }}</span>
                 <input
                   v-model.number="match.setScore2"
                   type="number"
@@ -190,7 +284,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps } from 'vue'
+import { ref, computed, defineProps, watch } from 'vue'
 import SelectInput from './SelectInput.vue'
 
 const props = defineProps({
@@ -204,6 +298,22 @@ const selectedGroupId = ref('')
 const kdkMatchesByGroup = ref(new Map())
 const selectedViewGroupId = ref(null)
 const showResultsTable = ref(true) // 경기 결과 표 표시 여부
+const selectedSeeds = ref([]) // 시드로 선택된 선수들
+
+// 인원수별 권장 시드 번호 (이미지 참고)
+const recommendedSeedIndices = {
+  6: [0, 2],   // 1,3
+  7: [0, 4],   // 1,5
+  8: [0, 6],   // 1,7
+  9: [0, 3, 7], // 1,4,8
+  10: [0, 7, 9], // 1,8,A
+  11: [0, 4, 7, 8], // 1,5,8,9
+  12: [1, 2, 7, 9], // 2,3,8,A
+  13: [0, 3, 5, 11], // 1,4,6,B
+  14: [1, 4, 7, 12], // 2,5,8,C
+  15: [0, 3, 4, 9, 13], // 1,4,5,A,D
+  16: [0, 5, 10, 15, 6, 9] // 1,6,B,G,7,A (1=0, 6=5, B=10, G=15, 7=6, A=9)
+}
 
 // 한울AA 대진표 데이터 (인원수별)
 // 한울AA는 중복 파트너가 없도록 설계되어 있습니다.
@@ -229,8 +339,66 @@ const getGroupName = (groupId) => {
   return group ? group.name : `그룹 ${groupId}`
 }
 
+// 선택된 그룹의 선수 목록 (시드 선택용)
+const availablePlayersForSeeds = computed(() => {
+  if (!selectedGroupId.value) return []
+  const group = props.groups.find(g => g.id === selectedGroupId.value)
+  if (!group) return []
+  return group.players
+    .filter(p => p.name && p.name.trim())
+    .map(p => p.name)
+})
+
+// 권장 시드 개수
+const recommendedSeeds = computed(() => {
+  const playerCount = availablePlayersForSeeds.value.length
+  const recommended = recommendedSeedIndices[playerCount]
+  if (!recommended) return []
+  return recommended.map(index => availablePlayersForSeeds.value[index]).filter(Boolean)
+})
+
+// 최대 시드 개수 (인원수에 따라)
+const maxSeeds = computed(() => {
+  const playerCount = availablePlayersForSeeds.value.length
+  const recommended = recommendedSeedIndices[playerCount]
+  return recommended ? recommended.length : Math.floor(playerCount / 2)
+})
+
+// 시드 초기화
+const clearSeeds = () => {
+  selectedSeeds.value = []
+}
+
+// 그룹 변경 시 시드 초기화
+watch(selectedGroupId, () => {
+  selectedSeeds.value = []
+})
+
 const toggleResultsTable = () => {
   showResultsTable.value = !showResultsTable.value
+}
+
+// 시드 충돌 검증
+const hasSeedConflicts = computed(() => {
+  if (!selectedViewGroupId.value || !kdkMatchesByGroup.value.has(selectedViewGroupId.value)) {
+    return false
+  }
+  const matches = kdkMatchesByGroup.value.get(selectedViewGroupId.value)
+  return matches.some(match => match.hasSeedConflict)
+})
+
+const seedConflictCount = computed(() => {
+  if (!selectedViewGroupId.value || !kdkMatchesByGroup.value.has(selectedViewGroupId.value)) {
+    return 0
+  }
+  const matches = kdkMatchesByGroup.value.get(selectedViewGroupId.value)
+  return matches.filter(match => match.hasSeedConflict).length
+})
+
+// 시드 팀인지 확인
+const isSeedTeam = (player1, player2) => {
+  if (!selectedSeeds.value || selectedSeeds.value.length < 2) return false
+  return selectedSeeds.value.includes(player1) && selectedSeeds.value.includes(player2)
 }
 
 const generateKDKBracket = () => {
@@ -254,15 +422,15 @@ const generateKDKBracket = () => {
     return
   }
 
+  // 시드 선수들이 선택되었는지 확인
+  const hasSeeds = selectedSeeds.value.length > 0
+  
   // 선수 목록을 랜덤으로 섞기 (Fisher-Yates 알고리즘)
-  // 매번 호출될 때마다 새로운 랜덤 순서로 섞임
   const shuffleArray = (array) => {
     const shuffled = [...array]
-    // 더 확실한 랜덤성을 위해 여러 번 섞기
     for (let round = 0; round < 3; round++) {
       for (let i = shuffled.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
-        // 배열 구조 분해 할당 대신 임시 변수 사용
         const temp = shuffled[i]
         shuffled[i] = shuffled[j]
         shuffled[j] = temp
@@ -271,9 +439,58 @@ const generateKDKBracket = () => {
     return shuffled
   }
   
-  // 랜덤으로 섞인 선수 목록 (이 순서대로 1번, 2번, 3번... 으로 매핑됨)
-  // 매번 대진표 생성 버튼을 누를 때마다 새로운 랜덤 순서로 섞임
-  const players = shuffleArray(originalPlayers)
+  // 시드 배정 로직
+  let players = []
+  if (hasSeeds) {
+    // 시드 선수들을 먼저 배정
+    const seedPlayers = [...selectedSeeds.value]
+    const nonSeedPlayers = originalPlayers.filter(p => !seedPlayers.includes(p))
+    
+    // 권장 시드 위치 가져오기
+    const playerCount = originalPlayers.length
+    const recommendedIndices = recommendedSeedIndices[playerCount] || []
+    
+    // 시드 선수 개수가 권장 개수와 일치하는지 확인
+    if (seedPlayers.length !== recommendedIndices.length) {
+      alert(`시드 선수 개수가 권장 개수(${recommendedIndices.length}명)와 일치하지 않습니다.\n권장 시드 개수에 맞춰 선택해주세요.`)
+      return
+    }
+    
+    // 시드 선수들을 정확히 권장 위치에 배정
+    players = new Array(playerCount).fill(null)
+    const shuffledNonSeeds = shuffleArray(nonSeedPlayers)
+    
+    // 1단계: 시드 선수들을 권장 위치에 정확히 배정
+    for (let i = 0; i < recommendedIndices.length; i++) {
+      const seedPosition = recommendedIndices[i]
+      // 배열 범위 체크
+      if (seedPosition >= 0 && seedPosition < playerCount) {
+        players[seedPosition] = seedPlayers[i]
+      } else {
+        console.error(`시드 위치 오류: ${seedPosition}는 유효한 범위(0-${playerCount - 1})를 벗어났습니다.`)
+        alert('시드 배정에 오류가 발생했습니다. 다시 시도해주세요.')
+        return
+      }
+    }
+    
+    // 2단계: 나머지 위치에 비시드 선수들을 랜덤으로 배정
+    let nonSeedIndex = 0
+    for (let i = 0; i < playerCount; i++) {
+      if (players[i] === null) {
+        players[i] = shuffledNonSeeds[nonSeedIndex++]
+      }
+    }
+    
+    // 모든 위치가 채워졌는지 확인
+    if (players.some(p => p === null || p === undefined)) {
+      console.error('시드 배정 오류: 모든 위치가 채워지지 않았습니다.')
+      alert('시드 배정에 오류가 발생했습니다. 다시 시도해주세요.')
+      return
+    }
+  } else {
+    // 시드가 없으면 기존처럼 랜덤으로 섞기
+    players = shuffleArray(originalPlayers)
+  }
 
   const bracket = hanulAABrackets[players.length]
   if (!bracket) {
@@ -281,38 +498,43 @@ const generateKDKBracket = () => {
     return
   }
 
-  // 대진표 생성
-  const matches = bracket.map((matchStr, index) => {
-    // "13:24" 또는 "1A:2B" 형식을 파싱 (이미지에서는 콜론 사용, 코드에서는 세미콜론 사용)
-    // "13" = 1번과 3번, "1A" = 1번과 10번(A)
-    const [team1Str, team2Str] = matchStr.split(';')
-    
-    // 선수 번호 파싱 함수
-    // "13" → [0, 2] (1번=인덱스0, 3번=인덱스2)
-    // "1A" → [0, 9] (1번=인덱스0, 10번=인덱스9)
-    const parseTeam = (str) => {
-      const indices = []
-      let i = 0
-      while (i < str.length) {
-        if (str[i] >= '0' && str[i] <= '9') {
-          // 숫자: 1-9
-          indices.push(parseInt(str[i]) - 1)
-          i++
-        } else if (str[i] >= 'A' && str[i] <= 'Z') {
-          // 문자: A=10, B=11, C=12...
-          indices.push(str[i].charCodeAt(0) - 'A'.charCodeAt(0) + 9)
-          i++
-        } else {
-          i++
-        }
+  // 선수 번호 파싱 함수
+  const parseTeam = (str) => {
+    const indices = []
+    let i = 0
+    while (i < str.length) {
+      if (str[i] >= '0' && str[i] <= '9') {
+        indices.push(parseInt(str[i]) - 1)
+        i++
+      } else if (str[i] >= 'A' && str[i] <= 'Z') {
+        indices.push(str[i].charCodeAt(0) - 'A'.charCodeAt(0) + 9)
+        i++
+      } else {
+        i++
       }
-      return indices
     }
+    return indices
+  }
 
+  // 시드 충돌 검증 함수
+  const checkSeedConflict = (match, seeds) => {
+    if (!seeds || seeds.length < 2) return false
+    const team1Players = [match.team1Player1, match.team1Player2]
+    const team2Players = [match.team2Player1, match.team2Player2]
+    
+    const team1Seeds = team1Players.filter(p => seeds.includes(p))
+    const team2Seeds = team2Players.filter(p => seeds.includes(p))
+    
+    return team1Seeds.length >= 2 || team2Seeds.length >= 2
+  }
+
+  // 대진표 생성
+  let matches = bracket.map((matchStr, index) => {
+    const [team1Str, team2Str] = matchStr.split(';')
     const team1Indices = parseTeam(team1Str)
     const team2Indices = parseTeam(team2Str)
 
-    return {
+    const match = {
       id: index + 1,
       team1Player1: players[team1Indices[0]] || `선수${team1Indices[0] + 1}`,
       team1Player2: players[team1Indices[1]] || `선수${team1Indices[1] + 1}`,
@@ -320,9 +542,35 @@ const generateKDKBracket = () => {
       team2Player2: players[team2Indices[1]] || `선수${team2Indices[1] + 1}`,
       setScore1: null,
       setScore2: null,
-      winner: null
+      winner: null,
+      hasSeedConflict: false
     }
+    
+    // 시드 충돌 검증
+    if (hasSeeds) {
+      match.hasSeedConflict = checkSeedConflict(match, selectedSeeds.value)
+    }
+    
+    return match
   })
+
+  // 시드 선수들이 서로 팀이 되지 않도록 검증 (이미 올바른 위치에 배정되었으므로 충돌이 없어야 함)
+  if (hasSeeds && selectedSeeds.value.length >= 2) {
+    let hasSeedConflict = false
+    matches.forEach(match => {
+      if (match.hasSeedConflict) {
+        hasSeedConflict = true
+      }
+    })
+    
+    // 시드가 올바른 위치에 배정되었다면 충돌이 발생하지 않아야 함
+    // 만약 충돌이 발생한다면 배정 로직에 문제가 있음
+    if (hasSeedConflict) {
+      console.error('시드 배정 오류: 시드 선수들이 올바른 위치에 배정되었는데도 충돌이 발생했습니다.')
+      alert('시드 배정에 오류가 발생했습니다. 다시 시도해주세요.')
+      return // 대진표 생성 중단
+    }
+  }
 
   kdkMatchesByGroup.value.set(group.id, matches)
   selectedViewGroupId.value = group.id
@@ -1217,6 +1465,228 @@ const matchResults = computed(() => {
   .score-label {
     font-size: 0.7rem;
   }
+  
+  .seed-players-list {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    max-height: 150px;
+  }
+}
+
+/* 시드 선택 섹션 */
+.seed-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(76, 175, 80, 0.1);
+}
+
+.seed-hint {
+  font-size: 0.7rem;
+  color: #666;
+  font-weight: 400;
+  margin-left: 0.5rem;
+}
+
+.seed-selector {
+  margin-top: 0.75rem;
+}
+
+.seed-info {
+  margin-bottom: 0.75rem;
+}
+
+.seed-description {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.seed-recommended {
+  font-size: 0.75rem;
+  color: #4CAF50;
+  font-weight: 600;
+  margin: 0;
+}
+
+.seed-players-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: rgba(76, 175, 80, 0.02);
+  border-radius: 8px;
+}
+
+.seed-player-item {
+  display: flex;
+  align-items: center;
+}
+
+.seed-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  width: 100%;
+}
+
+.seed-checkbox:hover {
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+.seed-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #4CAF50;
+  flex-shrink: 0;
+}
+
+.seed-checkbox input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.seed-checkbox-label {
+  font-size: 0.85rem;
+  color: #2E7D32;
+  font-weight: 500;
+  user-select: none;
+}
+
+.seed-selected-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.seed-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2E7D32;
+}
+
+.clear-seeds-btn {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 6px;
+  background: white;
+  color: #4CAF50;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clear-seeds-btn:hover {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: #4CAF50;
+}
+
+.clear-seeds-btn:active {
+  transform: scale(0.98);
+}
+
+/* 시드 충돌 검증 알림 */
+.seed-conflict-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(244, 67, 54, 0.1);
+  border: 2px solid #f44336;
+  border-radius: 12px;
+  animation: shake 0.5s ease-in-out;
+}
+
+.seed-valid-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(76, 175, 80, 0.1);
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #f44336;
+}
+
+.seed-valid-alert .alert-icon {
+  color: #4CAF50;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-content strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #d32f2f;
+  margin-bottom: 0.25rem;
+}
+
+.seed-valid-alert .alert-content strong {
+  color: #2E7D32;
+}
+
+.alert-content p {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* 시드 충돌 매치 스타일 */
+.match-card.seed-conflict {
+  border: 3px solid #f44336;
+  background: rgba(244, 67, 54, 0.05);
+  animation: pulseRed 2s ease-in-out infinite;
+}
+
+.team-card.seed-conflict-team {
+  background: rgba(244, 67, 54, 0.2);
+  border: 2px solid #f44336;
+}
+
+.player-name.seed-player {
+  position: relative;
+  font-weight: 700;
+}
+
+.player-name.seed-player::after {
+  content: '⭐';
+  margin-left: 0.25rem;
+  font-size: 0.7rem;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes pulseRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(244, 67, 54, 0); }
 }
 </style>
 

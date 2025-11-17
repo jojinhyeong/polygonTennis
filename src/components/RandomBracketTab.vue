@@ -257,7 +257,7 @@ const generateRandomBracket = () => {
     }))
 
   if (players.length < 4) {
-    alert(`${group.name}에는 최소 4명의 선수가 필요합니다. (복식은 2명씩 팀)`)
+    alert(`${group.name}에는 최소 4명의 선수가 필요합니다.`)
     return
   }
 
