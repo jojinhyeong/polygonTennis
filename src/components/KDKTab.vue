@@ -1414,6 +1414,24 @@ const matchResults = computed(() => {
   box-sizing: border-box;
 }
 
+.summary-table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.summary-table-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.summary-table-container::-webkit-scrollbar-thumb {
+  background: #7f5217;
+  border-radius: 4px;
+}
+
+.summary-table-container::-webkit-scrollbar-thumb:hover {
+  background: #6b4312;
+}
+
 .summary-table {
   width: 100%;
   min-width: 100%;
@@ -1537,10 +1555,23 @@ const matchResults = computed(() => {
   text-align: center;
 }
 
-.summary-table th:nth-child(11) {
+.summary-table th:nth-child(11),
+.summary-table td:last-child {
   width: auto;
   min-width: 50px;
-  text-align: center;
+  text-align: center !important;
+}
+
+.summary-table td:last-child {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.summary-table td:last-child .rank-cell {
+  text-align: center !important;
+  margin: 0;
 }
 
 .summary-table tbody tr {
@@ -1577,7 +1608,7 @@ const matchResults = computed(() => {
 }
 
 .win-cell {
-  color: #4CAF50;
+  color: #2196F3;
 }
 
 .loss-cell {
@@ -1594,7 +1625,7 @@ const matchResults = computed(() => {
 }
 
 .diff-cell.positive {
-  color: #4CAF50;
+  color: #2196F3;
 }
 
 .diff-cell.negative {

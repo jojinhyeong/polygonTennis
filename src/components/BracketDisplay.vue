@@ -291,17 +291,17 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 }
 
 .bracket-display::-webkit-scrollbar-track {
-  background: rgba(76, 175, 80, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
 }
 
 .bracket-display::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%);
+  background: #7f5217;
   border-radius: 4px;
 }
 
 .bracket-display::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, #8b5cf6 0%, #10b981 100%);
+  background: #6b4312;
 }
 
 @keyframes fadeIn {

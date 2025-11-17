@@ -1381,13 +1381,17 @@ const createDoubleBracket = (players) => {
 }
 
 .teams-list-outside::-webkit-scrollbar-track {
-  background: rgba(76, 175, 80, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
 
 .teams-list-outside::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  background: #7f5217;
   border-radius: 3px;
+}
+
+.teams-list-outside::-webkit-scrollbar-thumb:hover {
+  background: #6b4312;
 }
 
 .team-preview-item-outside {
@@ -1541,17 +1545,17 @@ const createDoubleBracket = (players) => {
 }
 
 .player-list-grid::-webkit-scrollbar-track {
-  background: rgba(76, 175, 80, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
 }
 
 .player-list-grid::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  background: #7f5217;
   border-radius: 4px;
 }
 
 .player-list-grid::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #8b5cf6 0%, #10b981 100%);
+  background: #6b4312;
 }
 
 .player-chip {

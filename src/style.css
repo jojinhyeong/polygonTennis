@@ -39,12 +39,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #a78bfa 0%, #34d399 100%);
+  background: #7f5217;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #34d399 0%, #a78bfa 100%);
+  background: #6b4312;
 }
 
 /* 선택 텍스트 스타일 */
