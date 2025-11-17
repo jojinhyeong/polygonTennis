@@ -83,7 +83,7 @@
       <div v-if="selectedViewGroupId && bracketsByGroup.has(selectedViewGroupId)" class="bracket-container-wrapper">
         <BracketDisplay 
           :bracket="bracketsByGroup.get(selectedViewGroupId)" 
-          :bracket-type="'double'"
+          :bracket-type="'double'" 
           @champion-winner="handleChampionWinner"
         />
       </div>
@@ -712,13 +712,13 @@ const createDoubleBracket = (players) => {
   // 복식: 2명씩 팀 구성
   const teams = []
   for (let i = 0; i < players.length; i += 2) {
-    teams.push({
-      id: teams.length + 1,
-      player1: players[i],
-      player2: players[i + 1],
-      teamName: `${players[i].name} / ${players[i + 1].name}`,
-      groupName: players[i].groupName
-    })
+      teams.push({
+        id: teams.length + 1,
+        player1: players[i],
+        player2: players[i + 1],
+        teamName: `${players[i].name} / ${players[i + 1].name}`,
+        groupName: players[i].groupName
+      })
   }
 
   // 첫 라운드 매칭을 위해 팀 순서를 랜덤하게 섞기
@@ -740,15 +740,15 @@ const createDoubleBracket = (players) => {
   // 첫 라운드: 모든 팀을 랜덤 매칭
   const firstRound = []
   for (let i = 0; i < currentRoundTeams.length; i += 2) {
-    firstRound.push({
-      id: firstRound.length + 1,
-      team1: currentRoundTeams[i],
-      team2: currentRoundTeams[i + 1],
-      score1: null,
-      score2: null,
-      winner: null,
-      round: roundNumber
-    })
+      firstRound.push({
+        id: firstRound.length + 1,
+        team1: currentRoundTeams[i],
+        team2: currentRoundTeams[i + 1],
+        score1: null,
+        score2: null,
+        winner: null,
+        round: roundNumber
+      })
   }
   rounds.push([...firstRound])
   roundNumber++
@@ -761,15 +761,15 @@ const createDoubleBracket = (players) => {
     const matchesInRound = remainingMatches / 2
     
     for (let i = 0; i < matchesInRound; i++) {
-      nextRound.push({
-        id: nextRound.length + 1,
-        team1: null, // 스코어 입력 후 자동 할당됨
-        team2: null, // 스코어 입력 후 자동 할당됨
-        score1: null,
-        score2: null,
-        winner: null,
-        round: roundNumber
-      })
+        nextRound.push({
+          id: nextRound.length + 1,
+          team1: null, // 스코어 입력 후 자동 할당됨
+          team2: null, // 스코어 입력 후 자동 할당됨
+          score1: null,
+          score2: null,
+          winner: null,
+          round: roundNumber
+        })
     }
     
     rounds.push([...nextRound])
@@ -940,7 +940,7 @@ const createDoubleBracket = (players) => {
 .brackets-container {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 250, 252, 0.98) 100%);
   border-radius: 20px;
-  padding: 1.5rem;
+  padding: 1.5rem 0.75rem;
   box-shadow: 
     0 20px 60px rgba(76, 175, 80, 0.15),
     0 8px 24px rgba(0, 0, 0, 0.1),
@@ -1150,7 +1150,7 @@ const createDoubleBracket = (players) => {
   }
 
   .brackets-container {
-    padding: 1.75rem;
+    padding: 1.75rem 1rem;
     border-radius: 18px;
   }
 
@@ -1163,6 +1163,22 @@ const createDoubleBracket = (players) => {
   }
 }
 
+/* 모바일 */
+@media (max-width: 480px) {
+  .group-tabs {
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+  }
+
+  .group-tab {
+    flex: 0 0 calc((100% - 3 * 0.5rem) / 4);
+    padding: 0.625rem 0.5rem;
+    font-size: 0.75rem;
+    min-width: 0;
+  }
+}
+
 /* 데스크톱 */
 @media (min-width: 769px) {
   .bracket-controls {
@@ -1171,7 +1187,7 @@ const createDoubleBracket = (players) => {
   }
 
   .brackets-container {
-    padding: 2rem 2.5rem;
+    padding: 2rem 1.5rem;
     border-radius: 24px;
   }
 

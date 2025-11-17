@@ -1070,44 +1070,151 @@ const matchResults = computed(() => {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 250, 252, 0.98) 100%);
+  border-radius: 20px;
+  padding: 1.5rem 0.75rem;
+  box-shadow: 
+    0 20px 60px rgba(76, 175, 80, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(76, 175, 80, 0.1);
+  border: 2px solid rgba(76, 175, 80, 0.25);
+  backdrop-filter: blur(30px);
+  overflow: visible;
+  position: relative;
+  animation: containerSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kdk-matches-container::before {
+  display: none;
+}
+
+.kdk-matches-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(76, 175, 80, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(102, 187, 106, 0.06) 0%, transparent 50%);
+  border-radius: 20px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes containerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .group-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.625rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid rgba(76, 175, 80, 0.2);
+  position: relative;
+  z-index: 1;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  overflow-y: hidden;
+}
+
+.group-tabs::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(76, 175, 80, 0.3) 50%, transparent 100%);
 }
 
 .group-tab {
-  padding: 0.625rem 1rem;
-  border: 2px solid rgba(76, 175, 80, 0.2);
-  border-radius: 10px;
-  background: white;
-  color: #666;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.9) 100%);
+  border: 2px solid rgba(76, 175, 80, 0.25);
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #4b5563;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 2px 8px rgba(76, 175, 80, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   white-space: nowrap;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.group-tab::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.group-tab:hover::before {
+  left: 100%;
 }
 
 .group-tab:hover {
-  border-color: #4CAF50;
-  color: #2E7D32;
+  border-color: rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 16px rgba(76, 175, 80, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  color: #1f2937;
 }
 
 .group-tab.active {
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  color: white;
   border-color: transparent;
+  color: white;
+  box-shadow: 
+    0 6px 20px rgba(76, 175, 80, 0.4),
+    0 2px 8px rgba(102, 187, 106, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  font-weight: 800;
+  position: relative;
+}
+
+.group-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
 }
 
 .matches-list {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .kdk-info-card {
@@ -1890,6 +1997,62 @@ const matchResults = computed(() => {
   .seed-players-list {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     max-height: 150px;
+  }
+
+  .kdk-matches-container {
+    padding: 1rem 0.5rem;
+    border-radius: 16px;
+  }
+
+  .kdk-matches-container::after {
+    border-radius: 16px;
+  }
+
+  .group-tabs {
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+  }
+
+  .group-tab {
+    flex: 0 0 calc((100% - 3 * 0.5rem) / 4);
+    padding: 0.625rem 0.5rem;
+    font-size: 0.75rem;
+    min-width: 0;
+  }
+}
+
+/* 태블릿 */
+@media (min-width: 481px) {
+  .kdk-matches-container {
+    padding: 1.75rem 1rem;
+    border-radius: 18px;
+  }
+
+  .kdk-matches-container::after {
+    border-radius: 18px;
+  }
+}
+
+/* 데스크톱 */
+@media (min-width: 769px) {
+  .kdk-matches-container {
+    padding: 2rem 1.5rem;
+    border-radius: 24px;
+  }
+
+  .kdk-matches-container::after {
+    border-radius: 24px;
+  }
+
+  .group-tabs {
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .group-tab {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9rem;
   }
 }
 
