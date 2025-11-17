@@ -125,6 +125,41 @@ const generateRandomBracket = () => {
     return
   }
 
+  if (players.length % 2 !== 0) {
+    alert('홀수명은 선택할 수 없습니다. 2명씩 팀을 구성해야 합니다.')
+    return
+  }
+
+  const teamCount = Math.floor(players.length / 2)
+  // 팀 수가 2의 거듭제곱인지 확인 (토너먼트)
+  const isValidTeamCount = (count) => {
+    return count > 0 && (count & (count - 1)) === 0
+  }
+
+  if (!isValidTeamCount(teamCount)) {
+    // 가장 가까운 2의 거듭제곱 찾기
+    let nextPowerOfTwo = 2
+    while (nextPowerOfTwo < teamCount) {
+      nextPowerOfTwo *= 2
+    }
+    const prevPowerOfTwo = nextPowerOfTwo / 2
+    const neededPlayersForNext = nextPowerOfTwo * 2
+    const neededPlayersForPrev = prevPowerOfTwo * 2
+    const diffForNext = neededPlayersForNext - players.length
+    const diffForPrev = players.length - neededPlayersForPrev
+    
+    let message = `토너먼트를 위해 팀 수는 2, 4, 8, 16... 이어야 합니다.\n\n현재: ${teamCount}팀 (${players.length}명)\n\n`
+    
+    if (diffForNext <= diffForPrev) {
+      message += `추천: ${nextPowerOfTwo}팀 (${neededPlayersForNext}명) - ${diffForNext}명 더 필요`
+    } else {
+      message += `추천: ${prevPowerOfTwo}팀 (${neededPlayersForPrev}명) - ${diffForPrev}명 제거 필요`
+    }
+    
+    alert(message)
+    return
+  }
+
   // 선수 순서를 랜덤하게 섞기
   players = shuffleArray([...players])
 
@@ -151,27 +186,16 @@ const createDoubleBracket = (players) => {
   // 복식: 2명씩 팀 구성
   const teams = []
   for (let i = 0; i < players.length; i += 2) {
-    if (i + 1 < players.length) {
-      teams.push({
-        id: teams.length + 1,
-        player1: players[i],
-        player2: players[i + 1],
-        teamName: `${players[i].name} / ${players[i + 1].name}`,
-        groupName: players[i].groupName
-      })
-    } else {
-      // 홀수명일 경우 부전승 처리
-      teams.push({
-        id: teams.length + 1,
-        player1: players[i],
-        player2: null,
-        teamName: players[i].name,
-        groupName: players[i].groupName
-      })
-    }
+    teams.push({
+      id: teams.length + 1,
+      player1: players[i],
+      player2: players[i + 1],
+      teamName: `${players[i].name} / ${players[i + 1].name}`,
+      groupName: players[i].groupName
+    })
   }
 
-  // 1라운드부터 결승까지 순서대로 생성
+  // 팀 수에 따라 라운드 생성 (마지막 라운드는 결승)
   const rounds = []
   let currentRoundTeams = [...teams]
   let roundNumber = 0
@@ -179,28 +203,15 @@ const createDoubleBracket = (players) => {
   // 첫 라운드: 모든 팀을 매칭
   const firstRound = []
   for (let i = 0; i < currentRoundTeams.length; i += 2) {
-    if (i + 1 < currentRoundTeams.length) {
-      firstRound.push({
-        id: firstRound.length + 1,
-        team1: currentRoundTeams[i],
-        team2: currentRoundTeams[i + 1],
-        score1: null,
-        score2: null,
-        winner: null,
-        round: roundNumber
-      })
-    } else {
-      // 홀수 팀일 경우 부전승
-      firstRound.push({
-        id: firstRound.length + 1,
-        team1: currentRoundTeams[i],
-        team2: null,
-        score1: null,
-        score2: null,
-        winner: currentRoundTeams[i].teamName,
-        round: roundNumber
-      })
-    }
+    firstRound.push({
+      id: firstRound.length + 1,
+      team1: currentRoundTeams[i],
+      team2: currentRoundTeams[i + 1],
+      score1: null,
+      score2: null,
+      winner: null,
+      round: roundNumber
+    })
   }
   rounds.push([...firstRound])
   roundNumber++
@@ -210,32 +221,18 @@ const createDoubleBracket = (players) => {
   
   while (remainingMatches > 1) {
     const nextRound = []
-    const matchesInRound = Math.ceil(remainingMatches / 2)
+    const matchesInRound = remainingMatches / 2
     
     for (let i = 0; i < matchesInRound; i++) {
-      if (i + 1 < matchesInRound || remainingMatches % 2 === 0) {
-        // 일반 매치 (두 팀 모두 있음)
-        nextRound.push({
-          id: nextRound.length + 1,
-          team1: null, // 스코어 입력 후 자동 할당됨
-          team2: null, // 스코어 입력 후 자동 할당됨
-          score1: null,
-          score2: null,
-          winner: null,
-          round: roundNumber
-        })
-      } else {
-        // 홀수일 경우 부전승 매치
-        nextRound.push({
-          id: nextRound.length + 1,
-          team1: null,
-          team2: null,
-          score1: null,
-          score2: null,
-          winner: null,
-          round: roundNumber
-        })
-      }
+      nextRound.push({
+        id: nextRound.length + 1,
+        team1: null, // 스코어 입력 후 자동 할당됨
+        team2: null, // 스코어 입력 후 자동 할당됨
+        score1: null,
+        score2: null,
+        winner: null,
+        round: roundNumber
+      })
     }
     
     rounds.push([...nextRound])

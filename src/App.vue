@@ -153,11 +153,11 @@ const selectedPlayers = ref([])
 
 // 제공된 선수 목록
 const availablePlayers = [
-  '조진형', '양준석', '고바우', '김동혁', '김시편', '김지은', '김태형', '김형수', 
-  '김혜민', '김혜선', '류수영', '민선기', '박기백', '박리롱', '박성용', '박윤진', 
-  '박정음', '박혜림', '백인호', '성수빈', '송슨곤', '송승훈', '유동균', '유제금', 
-  '윤여명', '이다솜', '이민우', '이종훈', '이혜지', '임보아', '장완희', '장인혜', 
-  '전민경', '전성현', '정우빈', '진철현', '황원기'
+  '고바우', '김동혁', '김시편', '김지은', '김태형', '김형수', '김혜민', '김혜선',
+  '류수영', '민선기', '박기백', '박리롱', '박성용', '박윤진', '박정음', '박혜림',
+  '백인호', '성수빈', '송슨곤', '송승훈', '유동균', '유제금', '윤여명', '이다솜',
+  '이민우', '이종훈', '이혜지', '임보아', '장완희', '장인혜', '전민경', '전성현',
+  '정우빈', '진철현', '조진형', '양준석', '황원기'
 ]
 
 const selectedGroupName = computed(() => {
@@ -488,7 +488,7 @@ const generateRandomBracket = (bracketData) => {
 .bulk-add-top-btn {
   width: 100%;
   padding: 0.75rem 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   border: none;
   border-radius: 12px;
@@ -558,21 +558,21 @@ const generateRandomBracket = (bracketData) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
+  padding: 1rem;
   border-bottom: 2px solid #f3f4f6;
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: #1a1a1a;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
 }
 
 .modal-close-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   border: none;
   background: rgba(107, 114, 128, 0.1);
@@ -592,14 +592,14 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: 1rem;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .modal-hint {
-  margin: 0 0 1.25rem 0;
-  font-size: 0.95rem;
+  margin: 0 0 1rem 0;
+  font-size: 0.75rem;
   color: #6b7280;
   font-weight: 500;
 }
@@ -612,9 +612,9 @@ const generateRandomBracket = (bracketData) => {
 
 .group-select-btn {
   width: 100%;
-  padding: 1.25rem 1.5rem;
+  padding: 0.875rem 1rem;
   border: 2px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 14px;
   background: white;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -640,14 +640,14 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .group-select-name {
-  font-size: 1.1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #1a1a1a;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
 }
 
 .group-select-count {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: #6b7280;
   font-weight: 500;
 }
@@ -681,7 +681,7 @@ const generateRandomBracket = (bracketData) => {
   border-radius: 10px;
   background: white;
   color: #374151;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -762,7 +762,7 @@ const generateRandomBracket = (bracketData) => {
 .select-all-btn {
   flex: 1;
   padding: 0.875rem 1.25rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
   background: white;
@@ -784,7 +784,7 @@ const generateRandomBracket = (bracketData) => {
 .add-selected-btn {
   flex: 2;
   padding: 0.875rem 1.25rem;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   border: none;
   border-radius: 12px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
@@ -878,7 +878,7 @@ const generateRandomBracket = (bracketData) => {
 @media (min-width: 481px) {
   .bulk-add-top-btn {
     padding: 1.125rem 2rem;
-    font-size: 1.05rem;
+    font-size: 0.85rem;
   }
 
   .modal-content {

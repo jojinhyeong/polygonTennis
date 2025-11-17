@@ -51,7 +51,7 @@
       <div class="preview-header">
         <h4 class="preview-title">
           <span class="preview-icon">🏆</span>
-          선택된 팀 ({{ Math.ceil(selectedPlayers.length / 2) }}팀)
+          선택된 팀 ({{ getTeamCount }}팀)
         </h4>
       </div>
       <div class="teams-list-outside">
@@ -137,6 +137,18 @@
             </svg>
             <span>선수들을 선택한 순서대로 2명씩 팀이 구성됩니다</span>
           </div>
+          <div v-if="selectedPlayers.length >= 4 && (!isTeamCountValid || selectedPlayers.length % 2 !== 0) && getTeamCountSuggestion" class="team-count-alert">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <div class="team-count-alert-content">
+              <div v-if="selectedPlayers.length % 2 !== 0">홀수명은 선택할 수 없습니다. (현재: {{ selectedPlayers.length }}명)</div>
+              <div v-else>토너먼트를 위해 팀 수는 2, 4, 8, 16... 이어야 합니다.</div>
+              <div class="team-count-suggestion" v-if="getTeamCountSuggestion">현재: {{ getTeamCount }}팀 ({{ selectedPlayers.length }}명) → 추천: {{ getTeamCountSuggestion.teamCount }}팀 ({{ getTeamCountSuggestion.playerCount }}명, {{ getTeamCountSuggestion.diff }}명 {{ getTeamCountSuggestion.action }})</div>
+            </div>
+          </div>
 
           <!-- 선수 목록 -->
           <div class="player-section">
@@ -178,14 +190,16 @@
             </button>
             <button 
               class="generate-bracket-btn" 
+              :class="{ 'invalid-team-count': selectedPlayers.length >= 4 && (!isTeamCountValid || selectedPlayers.length % 2 !== 0) }"
               @click="generateBracketFromSelected" 
-              :disabled="selectedPlayers.length < 4"
+              :disabled="selectedPlayers.length < 4 || selectedPlayers.length % 2 !== 0 || !isTeamCountValid"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="9 11 12 14 22 4"></polyline>
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
               </svg>
-              <span>대진표 생성 ({{ Math.ceil(selectedPlayers.length / 2) }}팀)</span>
+              <span>대진표 생성 ({{ getTeamCount }}팀)</span>
+              <span v-if="selectedPlayers.length >= 4 && (!isTeamCountValid || selectedPlayers.length % 2 !== 0)" class="team-count-warning">⚠️</span>
             </button>
           </div>
         </div>
@@ -324,9 +338,102 @@ const clearSelection = () => {
   selectedPlayers.value = []
 }
 
+// 팀 수가 2의 거듭제곱인지 확인 (토너먼트)
+const isValidTeamCount = (teamCount) => {
+  return teamCount > 0 && (teamCount & (teamCount - 1)) === 0
+}
+
+const getTeamCount = computed(() => {
+  return Math.floor(selectedPlayers.value.length / 2)
+})
+
+const isTeamCountValid = computed(() => {
+  const teamCount = getTeamCount.value
+  return teamCount >= 2 && isValidTeamCount(teamCount)
+})
+
+const getTeamCountSuggestion = computed(() => {
+  if (selectedPlayers.value.length < 4) return null
+  const teamCount = getTeamCount.value
+  if (isValidTeamCount(teamCount)) return null
+  
+  // 가장 가까운 2의 거듭제곱 찾기
+  let nextPowerOfTwo = 2
+  while (nextPowerOfTwo < teamCount) {
+    nextPowerOfTwo *= 2
+  }
+  const prevPowerOfTwo = nextPowerOfTwo / 2
+  const neededPlayersForNext = nextPowerOfTwo * 2
+  const neededPlayersForPrev = prevPowerOfTwo * 2
+  const diffForNext = neededPlayersForNext - selectedPlayers.value.length
+  const diffForPrev = selectedPlayers.value.length - neededPlayersForPrev
+  
+  // 현재 인원수가 홀수인 경우도 고려
+  if (selectedPlayers.value.length % 2 !== 0) {
+    // 홀수명이면 1명을 제거해야 함
+    const evenPlayerCount = selectedPlayers.value.length - 1
+    const evenTeamCount = evenPlayerCount / 2
+    
+    if (isValidTeamCount(evenTeamCount)) {
+      return {
+        teamCount: evenTeamCount,
+        playerCount: evenPlayerCount,
+        diff: 1,
+        action: '제거'
+      }
+    }
+  }
+  
+  if (diffForNext <= diffForPrev) {
+    return {
+      teamCount: nextPowerOfTwo,
+      playerCount: neededPlayersForNext,
+      diff: diffForNext,
+      action: '추가'
+    }
+  } else {
+    return {
+      teamCount: prevPowerOfTwo,
+      playerCount: neededPlayersForPrev,
+      diff: diffForPrev,
+      action: '제거'
+    }
+  }
+})
+
 const generateBracketFromSelected = () => {
   if (selectedPlayers.value.length < 4) {
     alert('최소 4명의 선수를 선택해주세요. (2팀 필요)')
+    return
+  }
+
+  if (selectedPlayers.value.length % 2 !== 0) {
+    alert('홀수명은 선택할 수 없습니다. 2명씩 팀을 구성해야 합니다.')
+    return
+  }
+
+  const teamCount = getTeamCount.value
+  if (!isValidTeamCount(teamCount)) {
+    // 가장 가까운 2의 거듭제곱 찾기
+    let nextPowerOfTwo = 2
+    while (nextPowerOfTwo < teamCount) {
+      nextPowerOfTwo *= 2
+    }
+    const prevPowerOfTwo = nextPowerOfTwo / 2
+    const neededPlayersForNext = nextPowerOfTwo * 2
+    const neededPlayersForPrev = prevPowerOfTwo * 2
+    const diffForNext = neededPlayersForNext - selectedPlayers.value.length
+    const diffForPrev = selectedPlayers.value.length - neededPlayersForPrev
+    
+    let message = `토너먼트를 위해 팀 수는 2, 4, 8, 16... 이어야 합니다.\n\n현재: ${teamCount}팀 (${selectedPlayers.value.length}명)\n\n`
+    
+    if (diffForNext <= diffForPrev) {
+      message += `추천: ${nextPowerOfTwo}팀 (${neededPlayersForNext}명) - ${diffForNext}명 더 선택`
+    } else {
+      message += `추천: ${prevPowerOfTwo}팀 (${neededPlayersForPrev}명) - ${diffForPrev}명 제거`
+    }
+    
+    alert(message)
     return
   }
 
@@ -358,56 +465,43 @@ const createDoubleBracket = (players) => {
   // 복식: 2명씩 팀 구성
   const teams = []
   for (let i = 0; i < players.length; i += 2) {
-    if (i + 1 < players.length) {
-      teams.push({
-        id: teams.length + 1,
-        player1: players[i],
-        player2: players[i + 1],
-        teamName: `${players[i].name} / ${players[i + 1].name}`,
-        groupName: players[i].groupName
-      })
-    } else {
-      // 홀수명일 경우 부전승 처리
-      teams.push({
-        id: teams.length + 1,
-        player1: players[i],
-        player2: null,
-        teamName: players[i].name,
-        groupName: players[i].groupName
-      })
-    }
+    teams.push({
+      id: teams.length + 1,
+      player1: players[i],
+      player2: players[i + 1],
+      teamName: `${players[i].name} / ${players[i + 1].name}`,
+      groupName: players[i].groupName
+    })
   }
 
-  // 1라운드부터 결승까지 순서대로 생성
+  // 첫 라운드 매칭을 위해 팀 순서를 랜덤하게 섞기
+  const shuffleArray = (array) => {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }
+  const shuffledTeams = shuffleArray(teams)
+
+  // 팀 수에 따라 라운드 생성 (마지막 라운드는 결승)
   const rounds = []
-  let currentRoundTeams = [...teams]
+  let currentRoundTeams = [...shuffledTeams]
   let roundNumber = 0
 
-  // 첫 라운드: 모든 팀을 매칭
+  // 첫 라운드: 모든 팀을 랜덤 매칭
   const firstRound = []
   for (let i = 0; i < currentRoundTeams.length; i += 2) {
-    if (i + 1 < currentRoundTeams.length) {
-      firstRound.push({
-        id: firstRound.length + 1,
-        team1: currentRoundTeams[i],
-        team2: currentRoundTeams[i + 1],
-        score1: null,
-        score2: null,
-        winner: null,
-        round: roundNumber
-      })
-    } else {
-      // 홀수 팀일 경우 부전승
-      firstRound.push({
-        id: firstRound.length + 1,
-        team1: currentRoundTeams[i],
-        team2: null,
-        score1: null,
-        score2: null,
-        winner: currentRoundTeams[i].teamName,
-        round: roundNumber
-      })
-    }
+    firstRound.push({
+      id: firstRound.length + 1,
+      team1: currentRoundTeams[i],
+      team2: currentRoundTeams[i + 1],
+      score1: null,
+      score2: null,
+      winner: null,
+      round: roundNumber
+    })
   }
   rounds.push([...firstRound])
   roundNumber++
@@ -417,32 +511,18 @@ const createDoubleBracket = (players) => {
   
   while (remainingMatches > 1) {
     const nextRound = []
-    const matchesInRound = Math.ceil(remainingMatches / 2)
+    const matchesInRound = remainingMatches / 2
     
     for (let i = 0; i < matchesInRound; i++) {
-      if (i + 1 < matchesInRound || remainingMatches % 2 === 0) {
-        // 일반 매치 (두 팀 모두 있음)
-        nextRound.push({
-          id: nextRound.length + 1,
-          team1: null, // 스코어 입력 후 자동 할당됨
-          team2: null, // 스코어 입력 후 자동 할당됨
-          score1: null,
-          score2: null,
-          winner: null,
-          round: roundNumber
-        })
-      } else {
-        // 홀수일 경우 부전승 매치
-        nextRound.push({
-          id: nextRound.length + 1,
-          team1: null,
-          team2: null,
-          score1: null,
-          score2: null,
-          winner: null,
-          round: roundNumber
-        })
-      }
+      nextRound.push({
+        id: nextRound.length + 1,
+        team1: null, // 스코어 입력 후 자동 할당됨
+        team2: null, // 스코어 입력 후 자동 할당됨
+        score1: null,
+        score2: null,
+        winner: null,
+        round: roundNumber
+      })
     }
     
     rounds.push([...nextRound])
@@ -450,36 +530,6 @@ const createDoubleBracket = (players) => {
     roundNumber++
   }
 
-  // 부전승 처리 함수
-  const advanceByeToNextRound = (byeMatch, winnerTeam, currentRoundNum) => {
-    if (currentRoundNum >= rounds.length - 1) return
-    
-    const nextRound = rounds[currentRoundNum + 1]
-    if (!nextRound || nextRound.length === 0) return
-    
-    const matchIndex = rounds[currentRoundNum].findIndex(m => m === byeMatch)
-    if (matchIndex === -1) return
-    
-    const nextMatchIndex = Math.floor(matchIndex / 2)
-    const nextMatch = nextRound[nextMatchIndex]
-    
-    if (nextMatch) {
-      if (matchIndex % 2 === 0) {
-        nextMatch.team1 = winnerTeam
-      } else {
-        nextMatch.team2 = winnerTeam
-      }
-    }
-  }
-
-  // 부전승 자동 처리
-  firstRound.forEach((match) => {
-    if (match.winner && !match.team2) {
-      advanceByeToNextRound(match, match.team1, 0)
-    }
-  })
-
-  // 정순으로 반환 (1라운드 → 결승)
   return rounds
 }
 </script>
@@ -1131,7 +1181,7 @@ const createDoubleBracket = (players) => {
 
 .modal-header h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: #2E7D32;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -1140,7 +1190,7 @@ const createDoubleBracket = (players) => {
 
 .modal-subtitle {
   margin: 0.25rem 0 0 0;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #6b7280;
   font-weight: 500;
 }
@@ -1186,7 +1236,7 @@ const createDoubleBracket = (players) => {
   border-radius: 10px;
   border: 1px solid rgba(76, 175, 80, 0.2);
   margin-bottom: 0.75rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #4b5563;
   font-weight: 500;
   flex-shrink: 0;
@@ -1362,7 +1412,7 @@ const createDoubleBracket = (players) => {
 }
 
 .player-section-title {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 800;
   color: #1f2937;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -1370,7 +1420,7 @@ const createDoubleBracket = (players) => {
 }
 
 .player-count {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #4CAF50;
   background: rgba(76, 175, 80, 0.1);
@@ -1418,7 +1468,7 @@ const createDoubleBracket = (players) => {
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
   color: #374151;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1507,7 +1557,7 @@ const createDoubleBracket = (players) => {
 .clear-btn {
   flex: 1;
   padding: 0.875rem 0.875rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   border: 2px solid rgba(239, 68, 68, 0.3);
   border-radius: 14px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
@@ -1544,7 +1594,7 @@ const createDoubleBracket = (players) => {
 .generate-bracket-btn {
   flex: 2;
   padding: 0.875rem 0.875rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   border: none;
   border-radius: 14px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
@@ -1601,6 +1651,58 @@ const createDoubleBracket = (players) => {
   transform: none;
 }
 
+.generate-bracket-btn.invalid-team-count:not(:disabled) {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  box-shadow: 
+    0 8px 24px rgba(245, 158, 11, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.generate-bracket-btn.invalid-team-count:not(:disabled):hover {
+  background: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+  box-shadow: 
+    0 12px 32px rgba(245, 158, 11, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.team-count-warning {
+  font-size: 0.9rem;
+  margin-left: 0.25rem;
+}
+
+.team-count-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  color: #92400e;
+  font-weight: 500;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.team-count-alert svg {
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.team-count-alert-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.team-count-suggestion {
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
 @media (min-width: 481px) {
   .modal-content {
     max-width: 700px;
@@ -1608,11 +1710,11 @@ const createDoubleBracket = (players) => {
   }
 
   .modal-header {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 
   .modal-body {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 
   .player-list-grid {
@@ -1642,7 +1744,7 @@ const createDoubleBracket = (players) => {
   }
 
   .modal-header h3 {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
   }
 
   .player-list-grid {

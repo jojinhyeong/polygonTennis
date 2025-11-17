@@ -149,15 +149,29 @@ const getTeamName = (team) => {
 }
 
 const getRoundName = (roundIndex, totalRounds) => {
-  const roundNames = ['1라운드', '2라운드', '준결승', '결승']
-  if (roundIndex < roundNames.length) {
-    return roundNames[roundIndex]
-  }
-  // 라운드 수에 따라 동적으로 이름 생성
-  const roundNumber = roundIndex + 1
+  // 마지막 라운드는 항상 결승
   if (roundIndex === totalRounds - 1) return '결승'
+  
+  // 마지막에서 두 번째는 준결승
   if (roundIndex === totalRounds - 2) return '준결승'
-  return `${roundNumber}라운드`
+  
+  // 나머지는 해당 라운드의 팀 수에 따라 이름 생성
+  // roundIndex가 0일 때 첫 라운드, 그때의 팀 수 = 2^(totalRounds - roundIndex)
+  const teamsInRound = Math.pow(2, totalRounds - roundIndex)
+  
+  // 32강, 16강, 8강 등으로 표시
+  if (teamsInRound >= 32) {
+    return `${teamsInRound}강`
+  } else if (teamsInRound >= 16) {
+    return `${teamsInRound}강`
+  } else if (teamsInRound >= 8) {
+    return `${teamsInRound}강`
+  } else if (teamsInRound >= 4) {
+    return `${teamsInRound}강`
+  }
+  
+  // 그 외는 라운드 번호로 표시
+  return `${roundIndex + 1}라운드`
 }
 
 const updateScore = (match) => {
