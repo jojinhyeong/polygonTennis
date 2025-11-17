@@ -548,11 +548,14 @@ const generateRandomBracket = (bracketData) => {
   justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  margin-top: 0;
+  padding-top: 0.25rem;
   animation: fadeInUp 0.8s ease-out 0.2s both;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   padding-bottom: 0.5rem;
+  overflow-y: hidden;
 }
 
 .tabs-container::-webkit-scrollbar {
@@ -600,7 +603,7 @@ const generateRandomBracket = (bracketData) => {
 
 .tab-button:hover {
   background: #e8f5e9;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
   color: #2E7D32;
 }
@@ -610,7 +613,7 @@ const generateRandomBracket = (bracketData) => {
   color: white;
   box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
   border-color: transparent;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .tab-icon {

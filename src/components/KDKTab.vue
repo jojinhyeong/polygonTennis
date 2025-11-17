@@ -1119,7 +1119,9 @@ const matchResults = computed(() => {
   display: flex;
   gap: 0.625rem;
   margin-bottom: 1.75rem;
+  margin-top: 0;
   flex-wrap: wrap;
+  padding-top: 0.25rem;
   padding-bottom: 1.25rem;
   border-bottom: 2px solid rgba(76, 175, 80, 0.2);
   position: relative;
@@ -1192,7 +1194,7 @@ const matchResults = computed(() => {
     0 6px 20px rgba(76, 175, 80, 0.4),
     0 2px 8px rgba(102, 187, 106, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   font-weight: 800;
   position: relative;
 }
@@ -2011,6 +2013,8 @@ const matchResults = computed(() => {
   .group-tabs {
     gap: 0.5rem;
     margin-bottom: 1.25rem;
+    margin-top: 0;
+    padding-top: 0.25rem;
     padding-bottom: 1rem;
   }
 
