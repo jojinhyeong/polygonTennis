@@ -25,7 +25,7 @@
             v-model="selectedGroupId"
             :options="groups"
             placeholder="그룹 선택"
-            :label-formatter="(group) => `${group.name} (${group.players.length}명)`"
+            :label-formatter="(group) => `${getGroupLabel(group.id)} (${group.players.length}명)`"
           />
         </div>
         
@@ -355,7 +355,23 @@ const hanulAABrackets = {
 
 const getGroupName = (groupId) => {
   const group = props.groups.find(g => g.id === groupId)
-  return group ? group.name : `그룹 ${groupId}`
+  return getGroupLabel(groupId)
+}
+
+// 그룹 ID를 알파벳 레이블로 변환 (1 -> A, 2 -> B, ... 26 -> Z)
+const getGroupLabel = (groupId) => {
+  if (groupId >= 1 && groupId <= 26) {
+    return String.fromCharCode(64 + groupId) + '그룹'
+  }
+  // 26개를 초과하면 AA, AB, ... 형식으로 표시
+  let label = ''
+  let num = groupId
+  while (num > 0) {
+    const remainder = (num - 1) % 26
+    label = String.fromCharCode(65 + remainder) + label
+    num = Math.floor((num - 1) / 26)
+  }
+  return label + '그룹'
 }
 
 // 선택된 그룹의 선수 목록 (시드 선택용)

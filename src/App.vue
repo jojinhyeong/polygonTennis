@@ -373,11 +373,66 @@ const addGroup = () => {
 
 const removeGroup = (groupId) => {
   if (groups.value.length > 1) {
+    // 그룹 삭제 전에 해당 그룹의 대진표 데이터도 삭제
+    removeGroupBracketData(groupId)
+    
     groups.value = groups.value.filter(g => g.id !== groupId)
     // watch가 자동으로 저장하지만, 명시적으로도 저장 (비어있는 선수 제거는 하지 않음)
     saveGroupsToStorage(true)
   } else {
     alert('최소 1개의 그룹이 필요합니다.')
+  }
+}
+
+// 그룹 삭제 시 해당 그룹의 대진표 데이터를 로컬 스토리지에서 삭제
+const removeGroupBracketData = (groupId) => {
+  try {
+    // 팀 선택 탭 데이터 삭제
+    const bracketTabData = localStorage.getItem('polygonTennis_bracketTab')
+    if (bracketTabData) {
+      const state = JSON.parse(bracketTabData)
+      if (state.bracketsByGroup && state.bracketsByGroup[groupId]) {
+        delete state.bracketsByGroup[groupId]
+        // selectedViewGroupId가 삭제된 그룹이면 null로 설정
+        if (state.selectedViewGroupId === groupId) {
+          state.selectedViewGroupId = null
+        }
+        localStorage.setItem('polygonTennis_bracketTab', JSON.stringify(state))
+      }
+    }
+    
+    // 팀 랜덤 탭 데이터 삭제
+    const randomBracketTabData = localStorage.getItem('polygonTennis_randomBracketTab')
+    if (randomBracketTabData) {
+      const state = JSON.parse(randomBracketTabData)
+      if (state.bracketsByGroup && state.bracketsByGroup[groupId]) {
+        delete state.bracketsByGroup[groupId]
+        // selectedViewGroupId가 삭제된 그룹이면 null로 설정
+        if (state.selectedViewGroupId === groupId) {
+          state.selectedViewGroupId = null
+        }
+        localStorage.setItem('polygonTennis_randomBracketTab', JSON.stringify(state))
+      }
+    }
+    
+    // 한울AA 탭 데이터 삭제
+    const kdkTabData = localStorage.getItem('polygonTennis_kdkTab')
+    if (kdkTabData) {
+      const state = JSON.parse(kdkTabData)
+      if (state.kdkMatchesByGroup && state.kdkMatchesByGroup[groupId]) {
+        delete state.kdkMatchesByGroup[groupId]
+        // selectedViewGroupId가 삭제된 그룹이면 null로 설정
+        if (state.selectedViewGroupId === groupId) {
+          state.selectedViewGroupId = null
+        }
+        localStorage.setItem('polygonTennis_kdkTab', JSON.stringify(state))
+      }
+    }
+    
+    // 한울AA 시드 데이터 삭제
+    localStorage.removeItem(`polygonTennis_kdkSeeds_${groupId}`)
+  } catch (error) {
+    console.error('그룹 대진표 데이터 삭제 실패:', error)
   }
 }
 

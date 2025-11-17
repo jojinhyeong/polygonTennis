@@ -8,7 +8,7 @@
           class="group-card"
         >
           <div class="card-header">
-            <div class="group-number">그룹 {{ group.id }}</div>
+            <div class="group-number">{{ getGroupLabel(group.id) }}</div>
             <button
               v-if="groups.length > 1"
               class="remove-group-btn"
@@ -20,16 +20,6 @@
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
-          </div>
-
-          <div class="group-name-section">
-            <input
-              v-model="group.name"
-              class="group-name-input"
-              @blur="updateGroupName(group.id, group.name)"
-              @keyup.enter="$event.target.blur()"
-              placeholder="그룹 이름을 입력하세요"
-            />
           </div>
 
           <div class="players-section">
@@ -57,7 +47,7 @@
                 </svg>
               </div>
               <button class="add-player-btn" @click.stop="addPlayer(group.id)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
@@ -146,6 +136,22 @@ const isGroupExpanded = (groupId) => {
   return expandedGroups.value.has(groupId)
 }
 
+// 그룹 ID를 알파벳 레이블로 변환 (1 -> A, 2 -> B, ... 26 -> Z)
+const getGroupLabel = (groupId) => {
+  if (groupId >= 1 && groupId <= 26) {
+    return String.fromCharCode(64 + groupId) + '그룹'
+  }
+  // 26개를 초과하면 AA, AB, ... 형식으로 표시
+  let label = ''
+  let num = groupId
+  while (num > 0) {
+    const remainder = (num - 1) % 26
+    label = String.fromCharCode(65 + remainder) + label
+    num = Math.floor((num - 1) / 26)
+  }
+  return label + '그룹'
+}
+
 const addPlayer = (groupId) => {
   const group = props.groups.find(g => g.id === groupId)
   if (group) {
@@ -178,9 +184,6 @@ const updatePlayer = (groupId, playerIndex, name) => {
   }
 }
 
-const updateGroupName = (groupId, name) => {
-  emit('update-group', groupId, { name })
-}
 </script>
 
 <style scoped>
@@ -243,7 +246,7 @@ const updateGroupName = (groupId, name) => {
 }
 
 .group-number {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #4CAF50;
   text-transform: uppercase;
@@ -272,36 +275,6 @@ const updateGroupName = (groupId, name) => {
   transform: scale(1.1) rotate(90deg);
 }
 
-.group-name-section {
-  margin-bottom: 1rem;
-}
-
-.group-name-input {
-  width: 100%;
-  font-size: 1rem;
-  font-weight: 700;
-  border: 2px solid transparent;
-  outline: none;
-  color: #1a1a1a;
-  background: rgba(76, 175, 80, 0.1);
-  padding: 0.625rem 0.875rem;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  -webkit-appearance: none;
-  touch-action: manipulation;
-}
-
-.group-name-input:hover {
-  background: rgba(76, 175, 80, 0.15);
-  border-color: rgba(76, 175, 80, 0.3);
-}
-
-.group-name-input:focus {
-  background: white;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2);
-}
 
 .players-section {
   margin-top: 0.75rem;
@@ -354,11 +327,11 @@ const updateGroupName = (groupId, name) => {
 }
 
 .add-player-btn {
-  width: 100%;
-  padding: 0.625rem 1rem;
-  font-size: 0.8rem;
+  width: auto;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
@@ -367,11 +340,12 @@ const updateGroupName = (groupId, name) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  gap: 0.35rem;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  min-height: 40px;
+  min-height: auto;
+  white-space: nowrap;
 }
 
 .add-player-btn:hover {
@@ -589,10 +563,6 @@ const updateGroupName = (groupId, name) => {
     border-radius: 22px;
   }
 
-  .group-name-input {
-    font-size: 1.375rem;
-    padding: 1rem 1.25rem;
-  }
 
   .players-header {
     flex-direction: row;
@@ -626,10 +596,6 @@ const updateGroupName = (groupId, name) => {
     border-radius: 24px;
   }
 
-  .group-name-input {
-    font-size: 1.5rem;
-    padding: 1rem 1.25rem;
-  }
 
   .add-group-btn {
     padding: 2.5rem;
