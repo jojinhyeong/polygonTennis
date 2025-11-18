@@ -146,11 +146,23 @@
         </div>
       </div>
     </div>
+
+    <!-- 맨 위로 가기 버튼 -->
+    <button 
+      v-if="showScrollToTop"
+      class="scroll-to-top-btn"
+      @click="scrollToTop"
+      aria-label="맨 위로"
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="18 15 12 9 6 15"></polyline>
+      </svg>
+    </button>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import GroupManager from './components/GroupManager.vue'
 import BracketTab from './components/BracketTab.vue'
 import RandomBracketTab from './components/RandomBracketTab.vue'
@@ -162,6 +174,7 @@ const showGroupSelectModal = ref(false)
 const showBulkAddModal = ref(false)
 const selectedGroupId = ref(null)
 const selectedPlayers = ref([])
+const showScrollToTop = ref(false)
 
 // 제공된 선수 목록
 const availablePlayers = [
@@ -357,6 +370,19 @@ watch(activeTab, () => {
   })
 })
 
+// 스크롤 감지 및 맨 위로 가기
+const handleScroll = () => {
+  const scrollY = window.scrollY || document.documentElement.scrollTop
+  showScrollToTop.value = scrollY > 300 // 300px 이상 스크롤 시 버튼 표시
+}
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
 // 컴포넌트 마운트 시 저장 (초기 로드 후, 비어있는 선수 제거 포함)
 onMounted(() => {
   nextTick(() => {
@@ -367,6 +393,14 @@ onMounted(() => {
     }
     saveGroupsToStorage(true)
   })
+  // 스크롤 이벤트 리스너 등록
+  window.addEventListener('scroll', handleScroll)
+  handleScroll() // 초기 상태 확인
+})
+
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 
 const addGroup = () => {
@@ -1174,6 +1208,54 @@ const generateRandomBracket = (bracketData) => {
 
   .tab-label {
     font-size: 1rem;
+  }
+}
+
+/* 맨 위로 가기 버튼 */
+.scroll-to-top-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 4px 12px rgba(76, 175, 80, 0.4),
+    0 0 0 3px rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.scroll-to-top-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 
+    0 8px 20px rgba(76, 175, 80, 0.5),
+    0 0 0 3px rgba(255, 255, 255, 0.2);
+}
+
+.scroll-to-top-btn:active {
+  transform: translateY(-2px) scale(1);
+}
+
+@media (max-width: 768px) {
+  .scroll-to-top-btn {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 48px;
+    height: 48px;
+  }
+
+  .scroll-to-top-btn svg {
+    width: 20px;
+    height: 20px;
   }
 }
 </style>

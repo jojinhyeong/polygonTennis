@@ -419,7 +419,7 @@
       </div>
     </div>
 
-    <div v-else class="empty-state">
+    <div v-else-if="showEmptyState" class="empty-state">
       <div class="empty-icon">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M3 3h18v18H3zM3 9h18M9 3v18"></path>
@@ -457,6 +457,7 @@ const matchCount = ref(null)
 const leagueDataByGroup = ref(new Map())
 const selectedViewGroupId = ref(null)
 const currentPhase = ref('preliminary')
+const showEmptyState = ref(true)
 const showTeamSelectModal = ref(false)
 const modalBodyRef = ref(null)
 const playerListRef = ref(null)
@@ -1208,6 +1209,7 @@ const generateFullLeague = () => {
   leagueDataByGroup.value.set(group.id, leagueData)
   selectedViewGroupId.value = group.id
   currentPhase.value = 'preliminary'
+  showEmptyState.value = false // empty-state 숨기기
 
   saveLeagueData()
   
@@ -1316,6 +1318,7 @@ const loadLeagueData = () => {
           }
         })
         leagueDataByGroup.value = validData
+        showEmptyState.value = validData.size === 0 // 데이터가 있으면 empty-state 숨기기
 
         if (state.selectedViewGroupId) {
           const groupIdNum = typeof state.selectedViewGroupId === 'string' 
