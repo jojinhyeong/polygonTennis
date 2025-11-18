@@ -50,7 +50,7 @@ const close = () => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   z-index: 10000;
   padding: 1rem;
@@ -74,7 +74,6 @@ const close = () => {
   padding: 2rem 2.5rem;
   max-width: 90%;
   width: 420px;
-  margin-top: 2rem;
   text-align: center;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.3),
@@ -82,6 +81,7 @@ const close = () => {
   animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
+  margin: auto;
 }
 
 .success-modal::before {
@@ -192,13 +192,11 @@ const close = () => {
 @media (max-width: 768px) {
   .success-modal-overlay {
     padding: 0.5rem;
-    padding-top: 1rem;
   }
 
   .success-modal {
     padding: 1.5rem 1.75rem;
     width: 90%;
-    margin-top: 1rem;
     max-height: 90vh;
   }
 

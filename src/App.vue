@@ -728,10 +728,12 @@ const generateRandomBracket = (bracketData) => {
 .bulk-add-section {
   margin-bottom: 1.5rem;
   animation: fadeInUp 0.8s ease-out 0.4s both;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .bulk-add-top-btn {
-  width: 100%;
+  width: auto;
   padding: 0.75rem 1.25rem;
   font-size: 0.8rem;
   font-weight: 600;
@@ -1138,7 +1140,7 @@ const generateRandomBracket = (bracketData) => {
 /* 태블릿 */
 @media (min-width: 481px) {
   .bulk-add-top-btn {
-    padding: 1.125rem 2rem;
+    padding: 0.875rem 1.75rem;
     font-size: 0.85rem;
   }
 
