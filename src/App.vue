@@ -63,6 +63,11 @@
           :groups="groups"
           key="kdk"
         />
+        <FullLeagueTab
+          v-if="activeTab === 'fullleague'"
+          :groups="groups"
+          key="fullleague"
+        />
       </div>
 
       <!-- 그룹 선택 모달 -->
@@ -150,6 +155,7 @@ import GroupManager from './components/GroupManager.vue'
 import BracketTab from './components/BracketTab.vue'
 import RandomBracketTab from './components/RandomBracketTab.vue'
 import KDKTab from './components/KDKTab.vue'
+import FullLeagueTab from './components/FullLeagueTab.vue'
 
 const activeTab = ref('groups')
 const showGroupSelectModal = ref(false)
@@ -256,6 +262,11 @@ const tabs = [
     id: 'kdk', 
     label: '한울AA',
     icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>'
+  },
+  { 
+    id: 'fullleague', 
+    label: '풀리그',
+    icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 3v18"></path></svg>'
   }
 ]
 
@@ -431,6 +442,20 @@ const removeGroupBracketData = (groupId) => {
     
     // 한울AA 시드 데이터 삭제
     localStorage.removeItem(`polygonTennis_kdkSeeds_${groupId}`)
+    
+    // 풀리그 탭 데이터 삭제
+    const fullLeagueTabData = localStorage.getItem('polygonTennis_fullLeagueTab')
+    if (fullLeagueTabData) {
+      const state = JSON.parse(fullLeagueTabData)
+      if (state.leagueDataByGroup && state.leagueDataByGroup[groupId]) {
+        delete state.leagueDataByGroup[groupId]
+        // selectedViewGroupId가 삭제된 그룹이면 null로 설정
+        if (state.selectedViewGroupId === groupId) {
+          state.selectedViewGroupId = null
+        }
+        localStorage.setItem('polygonTennis_fullLeagueTab', JSON.stringify(state))
+      }
+    }
   } catch (error) {
     console.error('그룹 대진표 데이터 삭제 실패:', error)
   }

@@ -42,32 +42,6 @@
       </div>
     </div>
 
-    <!-- 선택된 팀 미리보기 (모달 밖으로 이동) -->
-    <div v-if="selectedPlayers.length > 0 && !showTeamSelectModal" class="team-preview-outside">
-      <div class="preview-header">
-        <h4 class="preview-title">
-          <span class="preview-icon">🏆</span>
-          선택된 팀 ({{ getTeamCount }}팀)
-        </h4>
-      </div>
-      <div class="teams-list-outside">
-        <div
-          v-for="(team, index) in previewTeams"
-          :key="index"
-          class="team-preview-item-outside"
-        >
-          <div class="team-number-badge">{{ index + 1 }}</div>
-          <div class="team-players-info">
-            <div class="team-player">{{ team.player1 }}</div>
-            <div class="team-separator">/</div>
-            <div class="team-player" :class="{ waiting: !team.player2 }">
-              {{ team.player2 || '대기중...' }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div v-if="bracketsByGroup.size > 0" class="brackets-container">
       <div class="group-tabs">
         <button
@@ -619,7 +593,9 @@ const saveBracketTabState = () => {
   try {
     const state = {
       bracketsByGroup: Object.fromEntries(bracketsByGroup.value),
-      selectedViewGroupId: selectedViewGroupId.value
+      selectedViewGroupId: selectedViewGroupId.value,
+      selectedPlayers: selectedPlayers.value,
+      selectedGroupId: selectedGroupId.value
     }
     localStorage.setItem('polygonTennis_bracketTab', JSON.stringify(state))
   } catch (error) {
@@ -661,6 +637,22 @@ const loadBracketTabState = () => {
           }
         }
       }
+      
+      // selectedPlayers와 selectedGroupId 불러오기
+      if (state.selectedGroupId) {
+        const groupIdNum = typeof state.selectedGroupId === 'string' 
+          ? parseInt(state.selectedGroupId) 
+          : state.selectedGroupId
+        const group = props.groups.find(g => g.id === groupIdNum)
+        if (group && state.selectedPlayers && Array.isArray(state.selectedPlayers)) {
+          // 선택된 선수들이 해당 그룹에 존재하는지 확인
+          const allPlayers = group.players
+            .filter(p => p.name && p.name.trim())
+            .map(p => p.name)
+          selectedPlayers.value = state.selectedPlayers.filter(name => allPlayers.includes(name))
+          selectedGroupId.value = groupIdNum
+        }
+      }
     }
   } catch (error) {
     console.error('팀선택 탭 데이터 불러오기 실패:', error)
@@ -671,6 +663,16 @@ const loadBracketTabState = () => {
 watch(bracketsByGroup, () => {
   saveBracketTabState()
 }, { deep: true })
+
+// selectedPlayers 변경 시 저장
+watch(selectedPlayers, () => {
+  saveBracketTabState()
+}, { deep: true })
+
+// selectedGroupId 변경 시 저장
+watch(selectedGroupId, () => {
+  saveBracketTabState()
+})
 
 // selectedViewGroupId 변경 시 저장
 watch(selectedViewGroupId, () => {
@@ -1372,156 +1374,6 @@ const createDoubleBracket = (players) => {
 }
 
 /* 모달 밖 팀 미리보기 */
-.team-preview-outside {
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
-  border-radius: 20px;
-  border: 2px solid rgba(76, 175, 80, 0.2);
-  box-shadow: 
-    0 8px 32px rgba(76, 175, 80, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.teams-list-outside {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  max-height: 300px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-  -webkit-overflow-scrolling: touch;
-}
-
-.teams-list-outside::-webkit-scrollbar {
-  width: 6px;
-}
-
-.teams-list-outside::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
-}
-
-.teams-list-outside::-webkit-scrollbar-thumb {
-  background: #7f5217;
-  border-radius: 3px;
-}
-
-.teams-list-outside::-webkit-scrollbar-thumb:hover {
-  background: #6b4312;
-}
-
-.team-preview-item-outside {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.05) 100%);
-  border-radius: 14px;
-  border: 2px solid rgba(76, 175, 80, 0.15);
-  transition: all 0.3s ease;
-}
-
-.team-preview-item-outside:hover {
-  border-color: rgba(76, 175, 80, 0.3);
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
-}
-
-.preview-header {
-  margin-bottom: 1rem;
-}
-
-.preview-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 800;
-  color: #1f2937;
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.preview-icon {
-  font-size: 1.25rem;
-}
-
-.teams-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-.team-preview-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.05) 100%);
-  border-radius: 14px;
-  border: 2px solid rgba(76, 175, 80, 0.15);
-  transition: all 0.3s ease;
-}
-
-.team-preview-item:hover {
-  border-color: rgba(76, 175, 80, 0.3);
-  transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
-}
-
-.team-number-badge {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  color: white;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 0.875rem;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-  flex-shrink: 0;
-}
-
-.team-players-info {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-weight: 600;
-  color: #1f2937;
-  font-size: 0.9rem;
-}
-
-.team-player {
-  flex: 1;
-}
-
-.team-player.waiting {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.team-separator {
-  color: #4CAF50;
-  font-weight: 700;
-}
 
 .player-section {
   flex: 1;
