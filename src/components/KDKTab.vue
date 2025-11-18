@@ -239,15 +239,16 @@
                   'seed-conflict-team': match.hasSeedConflict && isSeedTeam(match.team1Player1, match.team1Player2)
                 }"
               >
-                <span 
-                  class="player-name"
-                  :class="{ 'seed-player': selectedSeeds.includes(match.team1Player1) }"
-                >{{ match.team1Player1 }}</span>
-                <span class="player-separator">/</span>
-                <span 
-                  class="player-name"
-                  :class="{ 'seed-player': selectedSeeds.includes(match.team1Player2) }"
-                >{{ match.team1Player2 }}</span>
+                <div class="player-names">
+                  <span 
+                    class="player-name"
+                    :class="{ 'seed-player': selectedSeeds.includes(match.team1Player1) }"
+                  >{{ match.team1Player1 }}</span>
+                  <span 
+                    class="player-name"
+                    :class="{ 'seed-player': selectedSeeds.includes(match.team1Player2) }"
+                  >{{ match.team1Player2 }}</span>
+                </div>
                 <input
                   v-model.number="match.setScore1"
                   type="number"
@@ -266,15 +267,16 @@
                   'seed-conflict-team': match.hasSeedConflict && isSeedTeam(match.team2Player1, match.team2Player2)
                 }"
               >
-                <span 
-                  class="player-name"
-                  :class="{ 'seed-player': selectedSeeds.includes(match.team2Player1) }"
-                >{{ match.team2Player1 }}</span>
-                <span class="player-separator">/</span>
-                <span 
-                  class="player-name"
-                  :class="{ 'seed-player': selectedSeeds.includes(match.team2Player2) }"
-                >{{ match.team2Player2 }}</span>
+                <div class="player-names">
+                  <span 
+                    class="player-name"
+                    :class="{ 'seed-player': selectedSeeds.includes(match.team2Player1) }"
+                  >{{ match.team2Player1 }}</span>
+                  <span 
+                    class="player-name"
+                    :class="{ 'seed-player': selectedSeeds.includes(match.team2Player2) }"
+                  >{{ match.team2Player2 }}</span>
+                </div>
                 <input
                   v-model.number="match.setScore2"
                   type="number"
@@ -1434,16 +1436,19 @@ const matchResults = computed(() => {
   }
 }
 
+.player-names {
+  display: flex;
+  flex-direction: column;
+  align-items: left;
+  gap: 0.125rem;
+  flex: 1;
+}
+
 .player-name {
   font-size: 0.75rem;
   font-weight: 600;
   color: #2E7D32;
-}
-
-.player-separator {
-  color: #999;
-  font-weight: 400;
-  font-size: 0.7rem;
+  line-height: 1.3;
 }
 
 .score-input {
