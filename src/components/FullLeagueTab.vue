@@ -57,7 +57,7 @@
               v-for="count in [2, 3, 4]"
               :key="count"
               :class="['match-count-btn', { active: matchCount === count }]"
-              @click="matchCount = count"
+              @click="selectMatchCount(count)"
             >
               {{ count }}경기
             </button>
@@ -111,17 +111,6 @@
             </svg>
             <span>선수들을 선택한 순서대로 2명씩 팀이 구성됩니다</span>
           </div>
-          <div v-if="selectedPlayers.length > 0 && selectedPlayers.length % 2 !== 0" class="team-count-alert">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <div class="team-count-alert-content">
-              <div>홀수명은 선택할 수 없습니다. (현재: {{ selectedPlayers.length }}명)</div>
-            </div>
-          </div>
-
           <!-- 선수 목록 -->
           <div class="player-section">
             <div class="player-section-header">
@@ -335,6 +324,99 @@
           </div>
         </div>
       </div>
+      
+      <!-- 팡파레 이펙트 -->
+      <div v-if="showCelebration" class="celebration-overlay">
+        <!-- 폭죽 이펙트 -->
+        <div class="fireworks-container">
+          <template v-for="i in 12" :key="`firework-${i}`">
+            <div class="firework" :style="getFireworkStyle(i, 12)">
+              <div v-for="j in 5" :key="`particle-${i}-${j}`" class="firework-particle" :style="getParticleStyle(i, j, 12)"></div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 우승자 모달 -->
+      <div v-if="showWinnerModal" class="winner-modal-overlay" @click="closeWinnerModal">
+        <div class="winner-modal" @click.stop>
+          <div class="winner-modal-header">
+            <div class="winner-crown-large">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5z"></path>
+                <path d="M12 18v4"></path>
+                <path d="M8 21h8"></path>
+              </svg>
+            </div>
+            <h2 class="winner-title">우승자!</h2>
+          </div>
+          <div class="winner-content">
+            <div class="winner-names">{{ championWinner }}</div>
+          </div>
+          <button class="winner-close-btn" @click="closeWinnerModal">확인</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 경기 수 불가능 모달 -->
+    <div v-if="showInvalidMatchCountModal" class="modal-overlay" @click.self="closeInvalidMatchCountModal">
+      <div class="modal-content invalid-match-count-modal">
+        <div class="modal-header">
+          <div class="modal-header-content">
+            <div class="modal-icon" style="background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div>
+              <h3>경기 수 선택 불가</h3>
+              <p class="modal-subtitle">불가능한 조합입니다</p>
+            </div>
+          </div>
+          <button class="modal-close-btn" @click="closeInvalidMatchCountModal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="invalid-match-count-content">
+            <div class="invalid-info-card">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <div class="invalid-info-text">
+                <p><strong>{{ invalidMatchCountInfo.teamCount }}팀</strong>에서 <strong>{{ invalidMatchCountInfo.selectedCount }}경기</strong>는 선택할 수 없습니다.</p>
+                <p class="invalid-reason">각 경기는 2팀이 참여하므로, 총 경기 수는 정수여야 합니다.</p>
+                <p class="invalid-calculation">{{ invalidMatchCountInfo.teamCount }}팀 × {{ invalidMatchCountInfo.selectedCount }}경기 = {{ invalidMatchCountInfo.teamCount * invalidMatchCountInfo.selectedCount }} ÷ 2 = {{ (invalidMatchCountInfo.teamCount * invalidMatchCountInfo.selectedCount) / 2 }} (불가능)</p>
+              </div>
+            </div>
+            
+            <div class="available-counts-section">
+              <h4 class="available-counts-title">가능한 경기 수</h4>
+              <div v-if="invalidMatchCountInfo.availableCounts.length > 0" class="available-counts-list">
+                <button
+                  v-for="count in invalidMatchCountInfo.availableCounts"
+                  :key="count"
+                  class="available-count-btn"
+                  @click="selectAvailableMatchCount(count)"
+                >
+                  {{ count }}경기
+                </button>
+              </div>
+              <div v-else class="no-available-counts">
+                <p>현재 인원수({{ invalidMatchCountInfo.teamCount }}팀)에서는 가능한 경기 수가 없습니다.</p>
+                <p class="no-available-suggestion">인원수를 조정해주세요.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-else class="empty-state">
@@ -346,6 +428,13 @@
       <h3>풀리그를 생성해주세요</h3>
       <p>그룹을 선택하고 팀을 선택하여 풀리그를 생성하세요</p>
     </div>
+
+    <!-- 생성 완료 모달 -->
+    <SuccessModal 
+      :show="showSuccessModal" 
+      message="풀리그가 성공적으로 생성되었습니다."
+      @close="showSuccessModal = false"
+    />
   </div>
 </template>
 
@@ -353,6 +442,7 @@
 import { ref, computed, watch, defineProps, onMounted } from 'vue'
 import SelectInput from './SelectInput.vue'
 import BracketDisplay from './BracketDisplay.vue'
+import SuccessModal from './SuccessModal.vue'
 
 const props = defineProps({
   groups: {
@@ -370,6 +460,13 @@ const currentPhase = ref('preliminary')
 const showTeamSelectModal = ref(false)
 const modalBodyRef = ref(null)
 const playerListRef = ref(null)
+const showCelebration = ref(false)
+const showWinnerModal = ref(false)
+const championWinner = ref('')
+const lastChampionWinner = ref('') // 마지막으로 표시한 우승자 추적
+const showInvalidMatchCountModal = ref(false)
+const invalidMatchCountInfo = ref({ teamCount: 0, selectedCount: 0, availableCounts: [] })
+const showSuccessModal = ref(false)
 
 // 그룹 ID를 알파벳 레이블로 변환
 const getGroupLabel = (groupId) => {
@@ -428,6 +525,85 @@ const getSelectionOrder = (playerName) => {
   const index = selectedPlayers.value.indexOf(playerName)
   if (index === -1) return null
   return index + 1
+}
+
+// 가능한 경기 수 계산
+const getAvailableMatchCounts = (teamCount) => {
+  const available = []
+  for (let count = 2; count <= 4; count++) {
+    const totalMatchesNeeded = (teamCount * count) / 2
+    const maxPossiblePairs = (teamCount * (teamCount - 1)) / 2
+    
+    // 홀수 팀 수에서 홀수 경기 수는 불가능
+    if (teamCount % 2 === 1 && count % 2 === 1) {
+      continue
+    }
+    
+    // 총 경기 수가 정수이고 가능한 조합 수를 초과하지 않으면 가능
+    if (Number.isInteger(totalMatchesNeeded) && totalMatchesNeeded <= maxPossiblePairs) {
+      available.push(count)
+    }
+  }
+  return available
+}
+
+// 경기 수 선택
+const selectMatchCount = (count) => {
+  const teamCount = Math.floor(selectedPlayers.value.length / 2)
+  
+  // 수학적 가능성 확인
+  const totalMatchesNeeded = (teamCount * count) / 2
+  const maxPossiblePairs = (teamCount * (teamCount - 1)) / 2
+  
+  // 홀수 팀 수에서 홀수 경기 수는 불가능
+  if (teamCount % 2 === 1 && count % 2 === 1) {
+    const availableCounts = getAvailableMatchCounts(teamCount)
+    invalidMatchCountInfo.value = {
+      teamCount,
+      selectedCount: count,
+      availableCounts
+    }
+    showInvalidMatchCountModal.value = true
+    return
+  }
+  
+  // 총 경기 수가 정수가 아니면 불가능
+  if (!Number.isInteger(totalMatchesNeeded)) {
+    const availableCounts = getAvailableMatchCounts(teamCount)
+    invalidMatchCountInfo.value = {
+      teamCount,
+      selectedCount: count,
+      availableCounts
+    }
+    showInvalidMatchCountModal.value = true
+    return
+  }
+  
+  // 가능한 조합 수를 초과하면 불가능
+  if (totalMatchesNeeded > maxPossiblePairs) {
+    const availableCounts = getAvailableMatchCounts(teamCount)
+    invalidMatchCountInfo.value = {
+      teamCount,
+      selectedCount: count,
+      availableCounts
+    }
+    showInvalidMatchCountModal.value = true
+    return
+  }
+  
+  // 가능한 경우 경기 수 설정
+  matchCount.value = count
+}
+
+// 가능한 경기 수 선택
+const selectAvailableMatchCount = (count) => {
+  matchCount.value = count
+  closeInvalidMatchCountModal()
+}
+
+// 경기 수 불가능 모달 닫기
+const closeInvalidMatchCountModal = () => {
+  showInvalidMatchCountModal.value = false
 }
 
 const openTeamSelectModal = () => {
@@ -544,6 +720,24 @@ const getRankClass = (rank) => {
 
 // 랜덤 경기 생성 (중복 없이, 모든 팀이 정확히 matchCount만큼 경기)
 const generateRandomMatches = (teams, matchCount) => {
+  // 수학적 가능성 확인
+  const totalMatchesNeeded = (teams.length * matchCount) / 2
+  const maxPossiblePairs = (teams.length * (teams.length - 1)) / 2
+  
+  if (totalMatchesNeeded > maxPossiblePairs) {
+    console.error('수학적으로 불가능한 조합입니다.')
+    return []
+  }
+  
+  // 홀수 팀 수에서 홀수 경기 수는 수학적으로 불가능
+  // 예: 9팀 * 3경기 = 27, 27 / 2 = 13.5 (정수가 아님)
+  // 각 경기는 2팀이 참여하므로, 총 경기 수는 정수여야 함
+  if (teams.length % 2 === 1 && matchCount % 2 === 1) {
+    console.error(`홀수 팀 수(${teams.length}팀)에서 홀수 경기 수(${matchCount}경기)는 수학적으로 불가능합니다.`)
+    console.error(`총 필요한 경기 수: ${totalMatchesNeeded} (정수가 아님)`)
+    return []
+  }
+  
   const matches = []
   const playedPairs = new Set()
   
@@ -561,27 +755,29 @@ const generateRandomMatches = (teams, matchCount) => {
     }
   }
 
-  // 가능한 조합을 랜덤으로 섞기
-  const shuffledPairs = [...possiblePairs].sort(() => Math.random() - 0.5)
-
-  // 각 팀이 정확히 matchCount만큼 경기하도록 경기 생성
-  // 여러 라운드를 거쳐서 모든 팀이 충분한 경기를 하도록 함
-  let round = 0
-  const maxRounds = matchCount * 2
-
-  while (round < maxRounds) {
-    // 아직 경기 수가 부족한 팀 찾기
-    const teamsNeedingMatches = teams.filter(team => 
-      (teamMatchCount.get(team) || 0) < matchCount
-    )
-
-    // 모든 팀이 충분한 경기를 했으면 종료
-    if (teamsNeedingMatches.length < 2) break
-
-    // 이번 라운드에서 추가된 경기
-    let roundMatchesAdded = 0
-
-    // 가능한 조합 중에서 두 팀 모두 경기 수가 부족하고, 아직 경기하지 않은 조합 찾기
+  // 각 팀이 정확히 matchCount만큼 경기하도록 보장하는 알고리즘
+  // 더 많은 시도와 더 나은 휴리스틱 사용
+  const maxAttempts = 1000
+  let attempts = 0
+  
+  while (attempts < maxAttempts) {
+    // 초기화
+    matches.length = 0
+    playedPairs.clear()
+    teams.forEach(team => {
+      teamMatchCount.set(team, 0)
+    })
+    
+    // 가능한 조합을 랜덤으로 섞기
+    const shuffledPairs = [...possiblePairs].sort(() => Math.random() - 0.5)
+    
+    // 각 팀의 남은 경기 수를 추적
+    const remainingMatches = new Map()
+    teams.forEach(team => {
+      remainingMatches.set(team, matchCount)
+    })
+    
+    // 우선순위: 남은 경기 수가 적은 팀부터 매칭
     for (const [team1, team2] of shuffledPairs) {
       const pairKey1 = `${team1}|${team2}`
       const pairKey2 = `${team2}|${team1}`
@@ -589,11 +785,11 @@ const generateRandomMatches = (teams, matchCount) => {
       // 이미 경기한 조합이면 스킵
       if (playedPairs.has(pairKey1) || playedPairs.has(pairKey2)) continue
       
-      const team1Count = teamMatchCount.get(team1) || 0
-      const team2Count = teamMatchCount.get(team2) || 0
+      const team1Remaining = remainingMatches.get(team1) || 0
+      const team2Remaining = remainingMatches.get(team2) || 0
       
       // 두 팀 모두 경기 수가 부족한 경우에만 추가
-      if (team1Count < matchCount && team2Count < matchCount) {
+      if (team1Remaining > 0 && team2Remaining > 0) {
         matches.push({
           team1,
           team2,
@@ -602,41 +798,61 @@ const generateRandomMatches = (teams, matchCount) => {
           winner: null
         })
         playedPairs.add(pairKey1)
-        teamMatchCount.set(team1, team1Count + 1)
-        teamMatchCount.set(team2, team2Count + 1)
-        roundMatchesAdded++
+        remainingMatches.set(team1, team1Remaining - 1)
+        remainingMatches.set(team2, team2Remaining - 1)
+        teamMatchCount.set(team1, (teamMatchCount.get(team1) || 0) + 1)
+        teamMatchCount.set(team2, (teamMatchCount.get(team2) || 0) + 1)
       }
     }
-
-    // 이번 라운드에서 추가된 경기가 없으면 종료
-    if (roundMatchesAdded === 0) break
-
-    round++
+    
+    // 모든 팀이 정확히 matchCount만큼 경기했는지 확인
+    const allTeamsHaveExactMatches = teams.every(team => 
+      (teamMatchCount.get(team) || 0) === matchCount
+    )
+    
+    if (allTeamsHaveExactMatches) {
+      // 성공적으로 모든 팀이 정확히 matchCount만큼 경기함
+      return matches
+    }
+    
+    attempts++
   }
-
-  // 모든 팀이 정확히 matchCount만큼 경기했는지 확인
-  const allTeamsHaveEnoughMatches = teams.every(team => 
-    (teamMatchCount.get(team) || 0) === matchCount
+  
+  // 최대 시도 횟수를 초과했지만 정확한 매칭을 찾지 못한 경우
+  // 남은 조합으로 추가 시도 (더 공격적인 접근)
+  const teamsNeedingMatches = teams.filter(team => 
+    (teamMatchCount.get(team) || 0) < matchCount
   )
-
-  // 만약 모든 팀이 충분한 경기를 하지 못했다면, 남은 조합으로 추가 시도
-  if (!allTeamsHaveEnoughMatches) {
-    // 남은 가능한 조합으로 추가 시도 (한 팀이라도 부족하면 추가)
-    for (const [team1, team2] of shuffledPairs) {
-      const pairKey1 = `${team1}|${team2}`
-      const pairKey2 = `${team2}|${team1}`
-      
-      // 이미 경기한 조합이면 스킵
-      if (playedPairs.has(pairKey1) || playedPairs.has(pairKey2)) continue
-      
+  
+  if (teamsNeedingMatches.length > 0) {
+    // 남은 가능한 조합으로 추가 시도
+    const remainingPairs = possiblePairs.filter(([t1, t2]) => {
+      const pairKey1 = `${t1}|${t2}`
+      const pairKey2 = `${t2}|${t1}`
+      return !playedPairs.has(pairKey1) && !playedPairs.has(pairKey2)
+    })
+    
+    // 남은 경기 수가 많은 팀부터 우선 매칭
+    remainingPairs.sort(([t1a, t2a], [t1b, t2b]) => {
+      const a1Remaining = matchCount - (teamMatchCount.get(t1a) || 0)
+      const a2Remaining = matchCount - (teamMatchCount.get(t2a) || 0)
+      const b1Remaining = matchCount - (teamMatchCount.get(t1b) || 0)
+      const b2Remaining = matchCount - (teamMatchCount.get(t2b) || 0)
+      const aMax = Math.max(a1Remaining, a2Remaining)
+      const bMax = Math.max(b1Remaining, b2Remaining)
+      return bMax - aMax
+    })
+    
+    for (const [team1, team2] of remainingPairs) {
       const team1Count = teamMatchCount.get(team1) || 0
       const team2Count = teamMatchCount.get(team2) || 0
       
-      // 한 팀이라도 경기 수가 부족하면 추가
-      if (team1Count < matchCount || team2Count < matchCount) {
-        // 두 팀 모두 이미 충분한 경기를 했다면 스킵
-        if (team1Count >= matchCount && team2Count >= matchCount) continue
-        
+      // 두 팀 모두 정확히 matchCount만큼 경기했으면 스킵
+      if (team1Count >= matchCount && team2Count >= matchCount) continue
+      
+      // 두 팀 모두 부족한 경우에만 추가
+      if (team1Count < matchCount && team2Count < matchCount) {
+        const pairKey1 = `${team1}|${team2}`
         matches.push({
           team1,
           team2,
@@ -648,13 +864,44 @@ const generateRandomMatches = (teams, matchCount) => {
         teamMatchCount.set(team1, team1Count + 1)
         teamMatchCount.set(team2, team2Count + 1)
         
-        // 모든 팀이 충분한 경기를 했는지 다시 확인
+        // 모든 팀이 정확히 matchCount만큼 경기했는지 확인
         const allComplete = teams.every(team => 
-          (teamMatchCount.get(team) || 0) >= matchCount
+          (teamMatchCount.get(team) || 0) === matchCount
         )
         if (allComplete) break
       }
     }
+  }
+  
+  // 최종 검증: 모든 팀이 정확히 matchCount만큼 경기했는지 확인
+  const finalCheck = teams.every(team => 
+    (teamMatchCount.get(team) || 0) === matchCount
+  )
+  
+  if (!finalCheck) {
+    console.warn('일부 팀이 정확히 지정된 경기 수만큼 경기하지 못했습니다.')
+    console.warn('팀별 경기 수:', Array.from(teamMatchCount.entries()).map(([team, count]) => `${team}: ${count}경기`))
+    // 실패한 경우 빈 배열 반환하여 재시도 유도
+    return []
+  }
+  
+  // 중복 경기 검증: 같은 팀 조합이 두 번 이상 있는지 확인
+  const matchPairs = new Set()
+  for (const match of matches) {
+    const pairKey1 = `${match.team1}|${match.team2}`
+    const pairKey2 = `${match.team2}|${match.team1}`
+    
+    if (matchPairs.has(pairKey1) || matchPairs.has(pairKey2)) {
+      console.error('중복 경기가 발견되었습니다!', match.team1, 'vs', match.team2)
+      // 중복이 발견되면 해당 경기 제거
+      const index = matches.indexOf(match)
+      if (index > -1) {
+        matches.splice(index, 1)
+      }
+      continue
+    }
+    
+    matchPairs.add(pairKey1)
   }
 
   return matches
@@ -906,8 +1153,33 @@ const generateFullLeague = () => {
     teams.push(teamName)
   }
 
-  // 랜덤 경기 생성
-  const preliminaryMatches = generateRandomMatches(teams, matchCount.value)
+  // 수학적 가능성 사전 확인 (이미 selectMatchCount에서 검증했지만 이중 확인)
+  const totalMatchesNeeded = (teams.length * matchCount.value) / 2
+  if (teams.length % 2 === 1 && matchCount.value % 2 === 1) {
+    const availableCounts = getAvailableMatchCounts(teams.length)
+    invalidMatchCountInfo.value = {
+      teamCount: teams.length,
+      selectedCount: matchCount.value,
+      availableCounts
+    }
+    showInvalidMatchCountModal.value = true
+    return
+  }
+  
+  // 랜덤 경기 생성 (실패 시 재시도)
+  let preliminaryMatches = generateRandomMatches(teams, matchCount.value)
+  let retryCount = 0
+  const maxRetries = 10
+  
+  while (preliminaryMatches.length === 0 && retryCount < maxRetries) {
+    retryCount++
+    preliminaryMatches = generateRandomMatches(teams, matchCount.value)
+  }
+  
+  if (preliminaryMatches.length === 0) {
+    alert('경기 생성에 실패했습니다. 다시 시도해주세요.')
+    return
+  }
 
   // 초기 순위표
   const standings = teams.map(team => ({
@@ -938,11 +1210,78 @@ const generateFullLeague = () => {
   currentPhase.value = 'preliminary'
 
   saveLeagueData()
+  
+  // 생성 완료 모달 표시
+  showSuccessModal.value = true
 }
 
 // 우승자 처리
 const handleChampionWinner = ({ winner, winnerTeam }) => {
-  console.log('우승자:', winner)
+  // 같은 우승자면 중복 표시하지 않음
+  if (lastChampionWinner.value === winner && showWinnerModal.value) {
+    return
+  }
+  
+  championWinner.value = winner
+  lastChampionWinner.value = winner
+  
+  // 기존 이펙트와 모달 닫기
+  showCelebration.value = false
+  showWinnerModal.value = false
+  
+  // 잠시 후 새로 표시
+  setTimeout(() => {
+    showCelebration.value = true
+    showWinnerModal.value = true
+    
+    // 3초 후 팡파레 이펙트 제거
+    setTimeout(() => {
+      showCelebration.value = false
+    }, 3000)
+  }, 100)
+}
+
+const closeWinnerModal = () => {
+  showWinnerModal.value = false
+  showCelebration.value = false
+  // 모달을 닫을 때는 lastChampionWinner를 초기화하지 않음 (같은 우승자 재표시 방지)
+}
+
+const getFireworkStyle = (index, total, baseDelay = 0) => {
+  const colors = ['#4CAF50', '#f44336', '#FF9800', '#2196F3', '#9C27B0', '#FFC107', '#00BCD4', '#E91E63', '#FF5722', '#9E9E9E']
+  const color = colors[index % colors.length]
+  const angle = (360 / total) * index
+  const delay = baseDelay + (index * 0.1)
+  const radius = 250 + Math.random() * 100
+  const angleRad = (angle * Math.PI) / 180
+  const x = Math.cos(angleRad) * radius
+  const y = Math.sin(angleRad) * radius
+  
+  return {
+    '--color': color,
+    '--x': `${x}px`,
+    '--y': `${y}px`,
+    animationDelay: `${delay}s`
+  }
+}
+
+const getParticleStyle = (fireworkIndex, particleIndex, total, baseDelay = 0) => {
+  const colors = ['#4CAF50', '#f44336', '#FF9800', '#2196F3', '#9C27B0', '#FFC107', '#00BCD4', '#E91E63', '#FF5722', '#9E9E9E']
+  const color = colors[fireworkIndex % colors.length]
+  const angle = (360 / total) * fireworkIndex
+  const particleAngle = angle + (particleIndex - 2) * 25
+  const particleAngleRad = (particleAngle * Math.PI) / 180
+  const particleRadius = 180 + Math.random() * 100
+  const x = Math.cos(particleAngleRad) * particleRadius
+  const y = Math.sin(particleAngleRad) * particleRadius
+  const delay = baseDelay + (fireworkIndex * 0.1) + 0.1
+  
+  return {
+    '--color': color,
+    '--px': `${x}px`,
+    '--py': `${y}px`,
+    animationDelay: `${delay}s`
+  }
 }
 
 // 로컬스토리지 저장
@@ -1355,29 +1694,6 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.team-count-alert {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.75rem 0.875rem;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%);
-  border-radius: 10px;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  margin-bottom: 0.75rem;
-  font-size: 0.75rem;
-  color: #92400e;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-
-.team-count-alert svg {
-  color: #f59e0b;
-  flex-shrink: 0;
-}
-
-.team-count-alert-content {
-  flex: 1;
-}
 
 .player-section {
   flex: 1;
@@ -2008,6 +2324,337 @@ onMounted(() => {
   justify-content: center;
   padding: 3rem 1rem;
   text-align: center;
+}
+
+/* 팡파레 이펙트 */
+.celebration-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+/* 폭죽 이펙트 */
+.fireworks-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.firework {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color);
+  box-shadow: 0 0 20px var(--color), 0 0 40px var(--color);
+  animation: fireworkExplode 1.5s ease-out forwards;
+}
+
+@keyframes fireworkExplode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+    box-shadow: 0 0 20px var(--color), 0 0 40px var(--color);
+  }
+  20% {
+    transform: translate(0, 0) scale(2);
+    opacity: 1;
+    box-shadow: 0 0 30px var(--color), 0 0 60px var(--color), 0 0 90px var(--color);
+  }
+  100% {
+    transform: translate(var(--x), var(--y)) scale(0);
+    opacity: 0;
+  }
+}
+
+.firework-particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color);
+  box-shadow: 0 0 15px var(--color), 0 0 30px var(--color);
+  top: 50%;
+  left: 50%;
+  margin-top: -3px;
+  margin-left: -3px;
+  animation: particleExplode 1.5s ease-out forwards;
+}
+
+@keyframes particleExplode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+    box-shadow: 0 0 15px var(--color), 0 0 30px var(--color);
+  }
+  30% {
+    opacity: 1;
+    box-shadow: 0 0 20px var(--color), 0 0 40px var(--color);
+  }
+  100% {
+    transform: translate(var(--px), var(--py)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* 우승자 모달 */
+.winner-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.winner-modal {
+  background: white;
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.winner-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4CAF50, #66BB6A, #f44336, #FF9800, #2196F3, #9C27B0, #FFC107, #4CAF50);
+  background-size: 200% 100%;
+  animation: gradientShift 3s linear infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.winner-modal-header {
+  margin-bottom: 1.5rem;
+}
+
+.winner-crown-large {
+  color: #FFD700;
+  margin: 0 auto 1rem;
+  animation: crownBounce 1s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(255, 215, 0, 0.4));
+}
+
+@keyframes crownBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-10px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+.winner-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2E7D32;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.winner-content {
+  margin-bottom: 2rem;
+}
+
+.winner-names {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.winner-close-btn {
+  width: 100%;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.winner-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.winner-close-btn:active {
+  transform: translateY(0);
+}
+
+/* 경기 수 불가능 모달 */
+.invalid-match-count-modal {
+  max-width: 500px;
+}
+
+.invalid-match-count-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.invalid-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.1) 0%, rgba(233, 30, 99, 0.1) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(244, 67, 54, 0.3);
+}
+
+.invalid-info-card svg {
+  color: #f44336;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.invalid-info-text {
+  flex: 1;
+}
+
+.invalid-info-text p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #1f2937;
+}
+
+.invalid-info-text p:last-child {
+  margin-bottom: 0;
+}
+
+.invalid-info-text strong {
+  color: #f44336;
+  font-weight: 700;
+}
+
+.invalid-reason {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.invalid-calculation {
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+}
+
+.available-counts-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.available-counts-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2E7D32;
+}
+
+.available-counts-list {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.available-count-btn {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.875rem 1.25rem;
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.available-count-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.available-count-btn:active {
+  transform: translateY(0);
+}
+
+.no-available-counts {
+  padding: 1rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.no-available-counts p {
+  margin: 0.5rem 0;
+}
+
+.no-available-suggestion {
+  color: #f44336;
+  font-weight: 600;
+  margin-top: 0.75rem !important;
 }
 
 .empty-icon {

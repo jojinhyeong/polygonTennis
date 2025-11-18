@@ -8,7 +8,7 @@
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
           </svg>
         </div>
-        <h2 class="controls-title">팀 선택 복식 대진 생성</h2>
+        <h2 class="controls-title">팀 선택 복식 토너먼트 생성</h2>
       </div>
       <div class="controls-body">
         <div class="control-group">
@@ -220,6 +220,13 @@
         </div>
       </div>
     </div>
+
+    <!-- 생성 완료 모달 -->
+    <SuccessModal 
+      :show="showSuccessModal" 
+      message="대진표가 성공적으로 생성되었습니다."
+      @close="showSuccessModal = false"
+    />
   </div>
 </template>
 
@@ -227,6 +234,7 @@
 import { ref, computed, watch, defineProps, defineEmits, nextTick, onMounted } from 'vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
+import SuccessModal from './SuccessModal.vue'
 
 const props = defineProps({
   groups: {
@@ -249,6 +257,7 @@ const showCelebration = ref(false)
 const showWinnerModal = ref(false)
 const championWinner = ref('')
 const lastChampionWinner = ref('') // 마지막으로 표시한 우승자 추적
+const showSuccessModal = ref(false)
 
 const getGroupName = (groupId) => {
   if (groupId === 'all') return '전체'
@@ -586,6 +595,9 @@ const generateBracketFromSelected = () => {
   saveBracketTabState()
 
   emit('update-bracket', Array.from(bracketsByGroup.value.values()))
+  
+  // 생성 완료 모달 표시
+  showSuccessModal.value = true
 }
 
 // 로컬스토리지에 저장

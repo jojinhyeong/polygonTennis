@@ -299,12 +299,20 @@
       <h3>한울AA 대진표를 생성해주세요</h3>
       <p>그룹을 선택하고 한울AA 리그전 대진표를 생성하세요</p>
     </div>
+
+    <!-- 생성 완료 모달 -->
+    <SuccessModal 
+      :show="showSuccessModal" 
+      message="한울AA 대진표가 성공적으로 생성되었습니다."
+      @close="showSuccessModal = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, defineProps, watch, onMounted } from 'vue'
 import SelectInput from './SelectInput.vue'
+import SuccessModal from './SuccessModal.vue'
 
 const props = defineProps({
   groups: {
@@ -318,6 +326,7 @@ const kdkMatchesByGroup = ref(new Map())
 const selectedViewGroupId = ref(null)
 const resultsTab = ref('full') // 'full' 또는 'summary'
 const selectedSeeds = ref([]) // 시드로 선택된 선수들
+const showSuccessModal = ref(false)
 
 // 인원수별 권장 시드 번호 (이미지 참고)
 const recommendedSeedIndices = {
@@ -772,6 +781,9 @@ const generateKDKBracket = () => {
   
   // 로컬스토리지에 저장
   saveKDKTabState()
+  
+  // 생성 완료 모달 표시
+  showSuccessModal.value = true
 }
 
 const updateScore = (match) => {

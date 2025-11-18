@@ -8,7 +8,7 @@
             <polyline points="8 6 2 12 8 18"></polyline>
           </svg>
         </div>
-        <h2 class="controls-title">팀 랜덤 복식 대진 생성</h2>
+        <h2 class="controls-title">팀 랜덤 복식 토너먼트 생성</h2>
       </div>
       <div class="controls-body">
         <div class="control-group">
@@ -113,6 +113,13 @@
       <h3>랜덤 대진표를 생성해주세요</h3>
       <p>그룹을 선택하고 랜덤 복식 대진표를 생성하세요</p>
     </div>
+
+    <!-- 생성 완료 모달 -->
+    <SuccessModal 
+      :show="showSuccessModal" 
+      message="랜덤 대진표가 성공적으로 생성되었습니다."
+      @close="showSuccessModal = false"
+    />
   </div>
 </template>
 
@@ -120,6 +127,7 @@
 import { ref, computed, defineProps, defineEmits, watch, onMounted } from 'vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
+import SuccessModal from './SuccessModal.vue'
 
 const props = defineProps({
   groups: {
@@ -137,6 +145,7 @@ const showCelebration = ref(false)
 const showWinnerModal = ref(false)
 const championWinner = ref('')
 const lastChampionWinner = ref('') // 마지막으로 표시한 우승자 추적
+const showSuccessModal = ref(false)
 
 const getGroupName = (groupId) => {
   if (groupId === 'all') return '전체'
@@ -326,6 +335,9 @@ const generateRandomBracket = () => {
   saveRandomBracketTabState()
 
   emit('generate-random', Array.from(bracketsByGroup.value.values()))
+  
+  // 생성 완료 모달 표시
+  showSuccessModal.value = true
 }
 
 // 로컬스토리지에 저장
