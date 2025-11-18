@@ -56,7 +56,7 @@
         </button>
       </div>
       
-      <div v-if="selectedViewGroupId && bracketsByGroup.has(selectedViewGroupId)" class="bracket-container-wrapper">
+      <div v-if="selectedViewGroupId && bracketsByGroup.has(selectedViewGroupId)" class="bracket-container">
         <BracketDisplay 
           :bracket="bracketsByGroup.get(selectedViewGroupId)" 
           :bracket-type="'double'" 
@@ -972,6 +972,10 @@ const createDoubleBracket = (players) => {
 }
 
 .brackets-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 250, 252, 0.98) 100%);
   border-radius: 20px;
   padding: 1.5rem 0.75rem;
@@ -1119,17 +1123,13 @@ const createDoubleBracket = (players) => {
   border-radius: 2px;
 }
 
-.bracket-container-wrapper {
-  width: 100%;
+.bracket-container {
   overflow-x: auto;
-  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
-  padding: 0.75rem 0.5rem;
-  margin: 0 -0.5rem;
   position: relative;
   z-index: 1;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(248, 250, 252, 0.5) 100%);
+  flex: 1;
+  min-height: 0;
 }
 
 .empty-state {

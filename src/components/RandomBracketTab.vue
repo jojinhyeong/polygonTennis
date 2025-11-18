@@ -690,6 +690,10 @@ const createDoubleBracket = (players) => {
 }
 
 .brackets-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.99) 0%, rgba(248, 250, 252, 0.98) 100%);
   border-radius: 20px;
   padding: 1.5rem 0.75rem;

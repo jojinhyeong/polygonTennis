@@ -2043,12 +2043,12 @@ const matchResults = computed(() => {
   }
 
   .kdk-matches-container {
-    padding: 1rem 0.5rem;
-    border-radius: 16px;
+    padding: 1.5rem 0.75rem;
+    border-radius: 20px;
   }
 
   .kdk-matches-container::after {
-    border-radius: 16px;
+    border-radius: 20px;
   }
 
   .group-tabs {

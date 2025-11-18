@@ -277,7 +277,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   gap: 1rem;
   overflow-x: visible;
   overflow-y: auto;
-  padding: 0.75rem 0.5rem;
+  padding: 0;
   min-height: auto;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
@@ -403,7 +403,7 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 .matches {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.625rem;
+  gap: 0.75rem;
   width: 100%;
 }
 
@@ -702,11 +702,18 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
   font-size: 0.75rem;
 }
 
+/* 모바일 */
+@media (max-width: 480px) {
+  .matches {
+    gap: 0.5rem;
+  }
+}
+
 /* 태블릿 */
 @media (min-width: 481px) {
   .bracket-display {
     gap: 1.25rem;
-    padding: 1rem 0.75rem;
+    padding: 0;
   }
 
   .matches {
@@ -719,12 +726,12 @@ const advanceToNextRound = (currentMatch, winnerTeam) => {
 @media (min-width: 769px) {
   .bracket-display {
     gap: 1.5rem;
-    padding: 1.25rem 1rem;
+    padding: 0;
   }
 
   .matches {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 0.875rem;
+    gap: 0.75rem;
   }
 }
 </style>
