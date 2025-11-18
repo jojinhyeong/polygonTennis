@@ -28,13 +28,15 @@
             :label-formatter="(group) => `${getGroupLabel(group.id)} (${group.players.length}명)`"
           />
         </div>
-        <button class="generate-random-btn" @click="generateRandomBracket" :disabled="!selectedGroupId">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="16 18 22 12 16 6"></polyline>
-            <polyline points="8 6 2 12 8 18"></polyline>
-          </svg>
-          <span>랜덤 대진 생성</span>
-        </button>
+        <Tooltip text="그룹의 선수들을 랜덤으로 팀을 구성하여 대진표를 생성합니다" position="top">
+          <button class="generate-random-btn" @click="generateRandomBracket" :disabled="!selectedGroupId">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <span>랜덤 대진 생성</span>
+          </button>
+        </Tooltip>
       </div>
     </div>
 
@@ -128,6 +130,7 @@ import { ref, computed, defineProps, defineEmits, watch, onMounted } from 'vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'
+import Tooltip from './Tooltip.vue'
 
 const props = defineProps({
   groups: {
@@ -643,7 +646,7 @@ const createDoubleBracket = (players) => {
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
   display: flex;
   align-items: center;
@@ -653,11 +656,28 @@ const createDoubleBracket = (players) => {
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.generate-random-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.generate-random-btn:hover::before {
+  left: 100%;
 }
 
 .generate-random-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.45);
 }
 
 .generate-random-btn:disabled {
@@ -666,7 +686,7 @@ const createDoubleBracket = (players) => {
 }
 
 .generate-random-btn:active {
-  transform: translateY(0);
+  transform: translateY(-1px) scale(1);
 }
 
 .brackets-container {

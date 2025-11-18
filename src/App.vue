@@ -27,47 +27,51 @@
 
       <div class="content-container">
         <div v-if="activeTab === 'groups'" class="bulk-add-section">
-          <button class="bulk-add-top-btn" @click="showGroupSelectModal = true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <line x1="20" y1="8" x2="20" y2="14"></line>
-              <line x1="23" y1="11" x2="17" y2="11"></line>
-            </svg>
-            <span>선수 일괄 추가</span>
-          </button>
+          <Tooltip text="여러 선수를 한 번에 추가할 수 있습니다">
+            <button class="bulk-add-top-btn" @click="showGroupSelectModal = true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+              </svg>
+              <span>선수 일괄 추가</span>
+            </button>
+          </Tooltip>
         </div>
 
-        <GroupManager
-          v-if="activeTab === 'groups'"
-          :groups="groups"
-          @add-group="addGroup"
-          @remove-group="removeGroup"
-          @update-group="updateGroup"
-          key="groups"
-        />
-        <BracketTab
-          v-if="activeTab === 'bracket'"
-          :groups="groups"
-          @update-bracket="updateBracket"
-          key="bracket"
-        />
-        <RandomBracketTab
-          v-if="activeTab === 'random'"
-          :groups="groups"
-          @generate-random="generateRandomBracket"
-          key="random"
-        />
-        <KDKTab
-          v-if="activeTab === 'kdk'"
-          :groups="groups"
-          key="kdk"
-        />
-        <FullLeagueTab
-          v-if="activeTab === 'fullleague'"
-          :groups="groups"
-          key="fullleague"
-        />
+        <Transition name="fade-slide" mode="out-in">
+          <GroupManager
+            v-if="activeTab === 'groups'"
+            :groups="groups"
+            @add-group="addGroup"
+            @remove-group="removeGroup"
+            @update-group="updateGroup"
+            key="groups"
+          />
+          <BracketTab
+            v-else-if="activeTab === 'bracket'"
+            :groups="groups"
+            @update-bracket="updateBracket"
+            key="bracket"
+          />
+          <RandomBracketTab
+            v-else-if="activeTab === 'random'"
+            :groups="groups"
+            @generate-random="generateRandomBracket"
+            key="random"
+          />
+          <KDKTab
+            v-else-if="activeTab === 'kdk'"
+            :groups="groups"
+            key="kdk"
+          />
+          <FullLeagueTab
+            v-else-if="activeTab === 'fullleague'"
+            :groups="groups"
+            key="fullleague"
+          />
+        </Transition>
       </div>
 
       <!-- 그룹 선택 모달 -->
@@ -168,6 +172,7 @@ import BracketTab from './components/BracketTab.vue'
 import RandomBracketTab from './components/RandomBracketTab.vue'
 import KDKTab from './components/KDKTab.vue'
 import FullLeagueTab from './components/FullLeagueTab.vue'
+import Tooltip from './components/Tooltip.vue'
 
 const activeTab = ref('groups')
 const showGroupSelectModal = ref(false)
@@ -609,7 +614,7 @@ const generateRandomBracket = (bracketData) => {
   margin-bottom: 1rem;
   margin-top: 0;
   padding-top: 0.25rem;
-  animation: fadeInUp 0.8s ease-out 0.2s both;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -632,7 +637,7 @@ const generateRandomBracket = (bracketData) => {
   background: #f5f5f5;
   color: #666666;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
@@ -643,6 +648,7 @@ const generateRandomBracket = (bracketData) => {
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transform: translateY(0);
 }
 
 .tab-button::before {
@@ -662,17 +668,30 @@ const generateRandomBracket = (bracketData) => {
 
 .tab-button:hover {
   background: #e8f5e9;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.25);
   color: #2E7D32;
 }
 
 .tab-button.active {
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
-  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
   border-color: transparent;
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.03);
+  animation: tabActivePulse 0.3s ease-out;
+}
+
+@keyframes tabActivePulse {
+  0% {
+    transform: translateY(-2px) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.05);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.03);
+  }
 }
 
 .tab-icon {
@@ -699,7 +718,7 @@ const generateRandomBracket = (bracketData) => {
   max-width: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
-  animation: fadeInUp 0.8s ease-out 0.4s both;
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1100,6 +1119,22 @@ const generateRandomBracket = (bracketData) => {
   transform: translateY(-10px);
 }
 
+/* 탭 전환 애니메이션 */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
 /* 태블릿 */
 @media (min-width: 481px) {
   .bulk-add-top-btn {
@@ -1216,10 +1251,11 @@ const generateRandomBracket = (bracketData) => {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  background: rgba(107, 114, 128, 0.7);
+  backdrop-filter: blur(8px);
   color: white;
   border: none;
   cursor: pointer;
@@ -1227,35 +1263,39 @@ const generateRandomBracket = (bracketData) => {
   align-items: center;
   justify-content: center;
   box-shadow: 
-    0 4px 12px rgba(76, 175, 80, 0.4),
-    0 0 0 3px rgba(255, 255, 255, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeInUp 0.3s ease-out;
 }
 
 .scroll-to-top-btn:hover {
-  transform: translateY(-4px) scale(1.05);
+  background: rgba(107, 114, 128, 0.85);
+  transform: translateY(-2px);
   box-shadow: 
-    0 8px 20px rgba(76, 175, 80, 0.5),
-    0 0 0 3px rgba(255, 255, 255, 0.2);
+    0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .scroll-to-top-btn:active {
-  transform: translateY(-2px) scale(1);
+  transform: translateY(0);
+}
+
+.scroll-to-top-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 @media (max-width: 768px) {
   .scroll-to-top-btn {
     bottom: 1.5rem;
     right: 1.5rem;
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
   }
 
   .scroll-to-top-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 }
 </style>

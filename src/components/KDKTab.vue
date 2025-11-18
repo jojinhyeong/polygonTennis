@@ -70,13 +70,15 @@
             </div>
           </div>
         </div>
-        <button class="generate-kdk-btn" @click="generateKDKBracket" :disabled="!selectedGroupId">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          <span>한울AA 대진표 생성</span>
-        </button>
+        <Tooltip text="한울AA 리그전 형식으로 대진표를 생성합니다. 시드를 선택하면 강자끼리 팀이 되지 않도록 배치됩니다" position="top">
+          <button class="generate-kdk-btn" @click="generateKDKBracket" :disabled="!selectedGroupId">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>한울AA 대진표 생성</span>
+          </button>
+        </Tooltip>
       </div>
     </div>
 
@@ -313,6 +315,7 @@
 import { ref, computed, defineProps, watch, onMounted } from 'vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'
+import Tooltip from './Tooltip.vue'
 
 const props = defineProps({
   groups: {
@@ -1062,14 +1065,35 @@ const matchResults = computed(() => {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   min-height: 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.generate-kdk-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.generate-kdk-btn:hover::before {
+  left: 100%;
 }
 
 .generate-kdk-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.45);
+}
+
+.generate-kdk-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(1);
 }
 
 .generate-kdk-btn:disabled {

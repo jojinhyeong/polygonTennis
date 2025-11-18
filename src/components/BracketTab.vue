@@ -30,15 +30,17 @@
             />
           </div>
         </div>
-        <button class="generate-btn" @click="openTeamSelectModal" :disabled="!selectedGroupId">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          <span>팀 선택</span>
-        </button>
+        <Tooltip text="그룹을 선택한 후 팀을 구성하여 대진표를 생성합니다" position="top">
+          <button class="generate-btn" @click="openTeamSelectModal" :disabled="!selectedGroupId">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>팀 선택</span>
+          </button>
+        </Tooltip>
       </div>
     </div>
 
@@ -235,6 +237,7 @@ import { ref, computed, watch, defineProps, defineEmits, nextTick, onMounted } f
 import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'
+import Tooltip from './Tooltip.vue'
 
 const props = defineProps({
   groups: {
@@ -926,7 +929,7 @@ const createDoubleBracket = (players) => {
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -935,15 +938,32 @@ const createDoubleBracket = (players) => {
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.generate-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.generate-btn:hover::before {
+  left: 100%;
 }
 
 .generate-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.45);
 }
 
 .generate-btn:active {
-  transform: translateY(0);
+  transform: translateY(-1px) scale(1);
 }
 
 .generate-btn:disabled {

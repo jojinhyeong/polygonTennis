@@ -28,20 +28,21 @@
           />
         </div>
 
-        <button 
-          v-if="selectedGroupId"
-          class="team-select-btn" 
-          @click="openTeamSelectModal"
-          :disabled="!selectedGroupId"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          <span>팀 구성하기</span>
-        </button>
+        <Tooltip text="풀리그에 참가할 팀을 선택합니다. 짝수명만 선택 가능합니다" position="top" v-if="selectedGroupId">
+          <button 
+            class="team-select-btn" 
+            @click="openTeamSelectModal"
+            :disabled="!selectedGroupId"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>팀 구성하기</span>
+          </button>
+        </Tooltip>
 
         <!-- 선택된 팀 미리보기 -->
         <div v-if="selectedGroupId && selectedPlayers.length >= 4 && selectedPlayers.length % 2 === 0" class="control-group">
@@ -51,6 +52,13 @@
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
             예선 경기 수
+            <Tooltip text="각 팀이 예선에서 진행할 경기 수를 선택합니다. 팀 수에 따라 선택 가능한 경기 수가 달라질 수 있습니다" position="top">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor: help; opacity: 0.6;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </Tooltip>
           </label>
           <div class="match-count-selector">
             <button
@@ -58,22 +66,28 @@
               :key="count"
               :class="['match-count-btn', { active: matchCount === count }]"
               @click="selectMatchCount(count)"
+              :title="`각 팀이 ${count}경기를 진행합니다`"
             >
               {{ count }}경기
             </button>
           </div>
         </div>
 
-        <button 
-          class="generate-league-btn" 
-          @click="generateFullLeague" 
-          :disabled="!selectedGroupId || selectedPlayers.length < 4 || selectedPlayers.length % 2 !== 0 || !matchCount"
+        <Tooltip 
+          :text="selectedPlayers.length < 4 ? '최소 4명(2팀)이 필요합니다' : selectedPlayers.length % 2 !== 0 ? '짝수명만 선택 가능합니다' : !matchCount ? '경기 수를 선택해주세요' : '예선 리그와 본선 토너먼트를 생성합니다'"
+          position="top"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 3h18v18H3zM3 9h18M9 3v18"></path>
-          </svg>
-          <span>풀리그 생성</span>
-        </button>
+          <button 
+            class="generate-league-btn" 
+            @click="generateFullLeague" 
+            :disabled="!selectedGroupId || selectedPlayers.length < 4 || selectedPlayers.length % 2 !== 0 || !matchCount"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3h18v18H3zM3 9h18M9 3v18"></path>
+            </svg>
+            <span>풀리그 생성</span>
+          </button>
+        </Tooltip>
       </div>
     </div>
 
@@ -198,7 +212,7 @@
             </div>
             <div class="info-content">
               <h3>예선 리그</h3>
-              <p>각 팀은 {{ matchCount }}경기를 진행합니다. 1~3등은 본선에 진출하며, 부전승이 없을 경우 4등도 진출할 수 있습니다.</p>
+              <p>각 팀은 {{ matchCount }}경기를 진행합니다. 1~4등은 토너먼트에 진출합니다.</p>
             </div>
           </div>
 
@@ -443,6 +457,7 @@ import { ref, computed, watch, defineProps, onMounted } from 'vue'
 import SelectInput from './SelectInput.vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SuccessModal from './SuccessModal.vue'
+import Tooltip from './Tooltip.vue'
 
 const props = defineProps({
   groups: {
@@ -1231,10 +1246,24 @@ const handleChampionWinner = ({ winner, winnerTeam }) => {
   showCelebration.value = false
   showWinnerModal.value = false
   
+  // 화면을 맨 위로 이동
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+  
   // 잠시 후 새로 표시
   setTimeout(() => {
     showCelebration.value = true
     showWinnerModal.value = true
+    
+    // 모달이 열릴 때 다시 맨 위로 이동 (스크롤이 이동했을 수 있으므로)
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      })
+    }, 100)
     
     // 3초 후 팡파레 이펙트 제거
     setTimeout(() => {
@@ -1459,25 +1488,61 @@ onMounted(() => {
 
 .match-count-selector {
   display: flex;
-  gap: 0.5rem;
+  gap: 0;
+  width: 100%;
 }
 
 .match-count-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 0;
   padding: 0.75rem 1rem;
   border: 2px solid rgba(76, 175, 80, 0.2);
-  border-radius: 12px;
+  border-radius: 0;
   background: white;
   color: #374151;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.match-count-btn:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.match-count-btn:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.match-count-btn:not(:first-child) {
+  border-left: none;
+}
+
+.match-count-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.1), transparent);
+  transition: left 0.4s;
+}
+
+.match-count-btn:hover::before {
+  left: 100%;
 }
 
 .match-count-btn:hover {
   border-color: #4CAF50;
   background: rgba(76, 175, 80, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
 }
 
 .match-count-btn.active {
@@ -1485,6 +1550,20 @@ onMounted(() => {
   color: white;
   border-color: transparent;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  transform: translateY(-2px) scale(1.02);
+  animation: matchCountActive 0.3s ease-out;
+}
+
+@keyframes matchCountActive {
+  0% {
+    transform: translateY(-2px) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.05);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.02);
+  }
 }
 
 .generate-league-btn {
@@ -1497,18 +1576,39 @@ onMounted(() => {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   min-height: 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.generate-league-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.generate-league-btn:hover::before {
+  left: 100%;
 }
 
 .generate-league-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.45);
+}
+
+.generate-league-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(1);
 }
 
 .generate-league-btn:disabled {
@@ -1526,18 +1626,39 @@ onMounted(() => {
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
   min-height: 44px;
+  position: relative;
+  overflow: hidden;
+}
+
+.team-select-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.team-select-btn:hover::before {
+  left: 100%;
 }
 
 .team-select-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.45);
+}
+
+.team-select-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(1);
 }
 
 .team-select-btn:disabled {
@@ -2419,10 +2540,13 @@ onMounted(() => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 9999;
   animation: fadeIn 0.3s ease-out;
+  padding: 1rem;
+  padding-top: 2rem;
+  overflow-y: auto;
 }
 
 .winner-modal {
@@ -2438,6 +2562,7 @@ onMounted(() => {
   animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
+  margin-top: 1rem;
 }
 
 .winner-modal::before {
@@ -2536,6 +2661,18 @@ onMounted(() => {
 
 .winner-close-btn:active {
   transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .winner-modal-overlay {
+    padding: 0.5rem;
+    padding-top: 1rem;
+  }
+
+  .winner-modal {
+    margin-top: 0.5rem;
+    max-height: 90vh;
+  }
 }
 
 /* 경기 수 불가능 모달 */
