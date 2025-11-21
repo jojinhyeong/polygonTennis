@@ -1,4 +1,4 @@
-ㅜ프프<template>
+<template>
   <div class="app">
     <div class="background-pattern"></div>
     <div class="app-content">
@@ -27,7 +27,15 @@
 
       <div class="content-container">
         <div v-if="activeTab === 'groups'" class="bulk-add-section">
-          <Tooltip text="여러 선수를 한 번에 추가할 수 있습니다">
+          <button class="guide-btn" @click="showGuideModal = true" title="그룹 관리 사용 방법을 확인하세요">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="white" stroke="#2196F3" stroke-width="2"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17" stroke="#2196F3" stroke-width="2" stroke-linecap="round"></line>
+            </svg>
+            <span>사용법</span>
+          </button>
+          <Tooltip text="여러 선수를 한 번에 추가할 수 있습니다" position="bottom">
             <button class="bulk-add-top-btn" @click="showGroupSelectModal = true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -53,6 +61,10 @@
             v-else-if="activeTab === 'bracket'"
             :groups="groups"
             @update-bracket="updateBracket"
+            @show-guide="showBracketGuideModal = true"
+            @open-team-select="handleOpenTeamSelect"
+            @close-team-select="closeTeamSelectModal"
+            ref="bracketTabRef"
             key="bracket"
           />
           <RandomBracketTab
@@ -102,6 +114,227 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 그룹 관리 사용 가이드 모달 -->
+      <div v-if="showGuideModal" class="modal-overlay" @click.self="closeGuideModal">
+        <div class="modal-content guide-modal">
+          <div class="modal-header">
+            <h3>그룹 관리 사용 가이드</h3>
+            <button class="modal-close-btn" @click="closeGuideModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body guide-body">
+            <div class="guide-section">
+              <div class="guide-step">
+                <div class="guide-step-number">1</div>
+                <div class="guide-step-content">
+                  <h4>그룹 생성</h4>
+                  <p>하단의 "새 그룹 추가" 버튼을 클릭하여 새로운 그룹을 생성합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">2</div>
+                <div class="guide-step-content">
+                  <h4>선수 추가 방법</h4>
+                  <p><strong>개별 추가:</strong> 각 그룹 카드의 "선수 추가" 버튼을 클릭하여 한 명씩 추가합니다.</p>
+                  <p><strong>일괄 추가:</strong> 상단의 "선수 일괄 추가" 버튼을 클릭하여 여러 선수를 한 번에 추가합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">3</div>
+                <div class="guide-step-content">
+                  <h4>선수 관리</h4>
+                  <p>선수 이름을 클릭하여 수정할 수 있고, 삭제 버튼으로 선수를 제거할 수 있습니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">4</div>
+                <div class="guide-step-content">
+                  <h4>그룹 활용</h4>
+                  <p>생성한 그룹은 다른 탭(토너먼트, 랜덤 대진표, KDK, 풀리그)에서 사용할 수 있습니다.</p>
+                </div>
+              </div>
+            </div>
+            <div class="guide-footer">
+              <label class="guide-checkbox">
+                <input type="checkbox" v-model="dontShowAgain" />
+                <span>다시 보지 않기</span>
+              </label>
+              <button class="guide-close-btn" @click="closeGuideModal">
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 팀 선택 사용 가이드 모달 -->
+      <div v-if="showBracketGuideModal" class="modal-overlay" @click.self="closeBracketGuideModal">
+        <div class="modal-content guide-modal">
+          <div class="modal-header">
+            <h3>팀 선택 사용 가이드</h3>
+            <button class="modal-close-btn" @click="closeBracketGuideModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body guide-body">
+            <div class="guide-section">
+              <div class="guide-step">
+                <div class="guide-step-number">1</div>
+                <div class="guide-step-content">
+                  <h4>그룹 선택</h4>
+                  <p>먼저 선수를 추가한 그룹을 선택합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">2</div>
+                <div class="guide-step-content">
+                  <h4>팀 선택</h4>
+                  <p>"팀 선택" 버튼을 클릭하면 선수 선택 화면이 열립니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">3</div>
+                <div class="guide-step-content">
+                  <h4>선수 선택</h4>
+                  <p>선수 목록에서 팀을 구성할 선수들을 <strong>순서대로</strong> 선택합니다. 선택한 순서대로 2명씩 팀이 구성됩니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">4</div>
+                <div class="guide-step-content">
+                  <h4>팀 수 제한</h4>
+                  <p>토너먼트를 위해 팀 수는 <strong>2, 4, 8, 16...</strong> (2의 거듭제곱)이어야 합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">5</div>
+                <div class="guide-step-content">
+                  <h4>대진표 생성</h4>
+                  <p>"대진표 생성" 버튼을 클릭하면 복식 토너먼트 대진표가 생성됩니다.</p>
+                </div>
+              </div>
+            </div>
+            <div class="guide-footer">
+              <label class="guide-checkbox">
+                <input type="checkbox" v-model="dontShowBracketGuideAgain" />
+                <span>다시 보지 않기</span>
+              </label>
+              <button class="guide-close-btn" @click="closeBracketGuideModal">
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 팀 구성하기 모달 -->
+      <div v-if="showTeamSelectModal" class="modal-overlay" @click.self="closeTeamSelectModal">
+        <div class="modal-content team-select-modal" style="max-width: 800px;">
+          <div class="modal-header">
+            <div class="modal-header-content">
+              <div class="modal-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <div>
+                <h3>팀 구성하기</h3>
+                <p class="modal-subtitle">{{ getBracketGroupName }}</p>
+              </div>
+            </div>
+            <button class="modal-close-btn" @click="closeTeamSelectModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+            <div class="modal-info-card">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span>선수들을 선택한 순서대로 2명씩 팀이 구성됩니다</span>
+            </div>
+            <div v-if="bracketTabRef?.selectedPlayers && bracketTabRef.selectedPlayers.length >= 4 && (!bracketTabRef.isTeamCountValid || bracketTabRef.selectedPlayers.length % 2 !== 0) && bracketTabRef.getTeamCountSuggestion" class="team-count-alert">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <div class="team-count-alert-content">
+                <div v-if="bracketTabRef.selectedPlayers.length % 2 !== 0">홀수명은 선택할 수 없습니다. (현재: {{ bracketTabRef.selectedPlayers.length }}명)</div>
+                <div v-else>토너먼트를 위해 팀 수는 2, 4, 8, 16... 이어야 합니다.</div>
+                <div class="team-count-suggestion" v-if="bracketTabRef.getTeamCountSuggestion">현재: {{ bracketTabRef.getTeamCount }}팀 ({{ bracketTabRef.selectedPlayers.length }}명) → 추천: {{ bracketTabRef.getTeamCountSuggestion.teamCount }}팀 ({{ bracketTabRef.getTeamCountSuggestion.playerCount }}명, {{ bracketTabRef.getTeamCountSuggestion.diff }}명 {{ bracketTabRef.getTeamCountSuggestion.action }})</div>
+              </div>
+            </div>
+
+            <!-- 선수 목록 -->
+            <div v-if="bracketTabRef" class="player-section">
+              <div class="player-section-header">
+                <h4 class="player-section-title">선수 선택</h4>
+                <span class="player-count">{{ bracketTabRef.availablePlayers?.length || 0 }}명</span>
+              </div>
+              <div class="player-list-grid">
+                <button
+                  v-for="player in bracketTabRef.availablePlayers || []"
+                  :key="player"
+                  :class="['player-chip', {
+                    selected: bracketTabRef.selectedPlayers?.includes(player)
+                  }]"
+                  @click="bracketTabRef.togglePlayer(player)"
+                >
+                  <span class="player-name">{{ player }}</span>
+                  <span v-if="bracketTabRef.selectedPlayers?.includes(player)" class="selection-order">
+                    {{ bracketTabRef.getSelectionOrder(player) }}
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div v-else class="player-section">
+              <div style="text-align: center; padding: 2rem; color: #9ca3af;">
+                <p>로딩 중...</p>
+              </div>
+            </div>
+
+            <div v-if="bracketTabRef" class="team-select-actions">
+              <button class="clear-btn" @click="bracketTabRef.clearSelection()" :disabled="!bracketTabRef.selectedPlayers || bracketTabRef.selectedPlayers.length === 0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>전체 해제</span>
+              </button>
+              <button 
+                class="generate-bracket-btn" 
+                :class="{ 'invalid-team-count': bracketTabRef.selectedPlayers && bracketTabRef.selectedPlayers.length >= 4 && (!bracketTabRef.isTeamCountValid || bracketTabRef.selectedPlayers.length % 2 !== 0) }"
+                @click="bracketTabRef.generateBracketFromSelected()" 
+                :disabled="!bracketTabRef.selectedPlayers || bracketTabRef.selectedPlayers.length < 4 || bracketTabRef.selectedPlayers.length % 2 !== 0 || !bracketTabRef.isTeamCountValid"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 11 12 14 22 4"></polyline>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                <span>대진표 생성 ({{ bracketTabRef.getTeamCount || 0 }}팀)</span>
+                <span v-if="bracketTabRef.selectedPlayers && bracketTabRef.selectedPlayers.length >= 4 && (!bracketTabRef.isTeamCountValid || bracketTabRef.selectedPlayers.length % 2 !== 0)" class="team-count-warning">⚠️</span>
               </button>
             </div>
           </div>
@@ -177,9 +410,16 @@ import Tooltip from './components/Tooltip.vue'
 const activeTab = ref('groups')
 const showGroupSelectModal = ref(false)
 const showBulkAddModal = ref(false)
+const showGuideModal = ref(false)
+const showBracketGuideModal = ref(false)
+const showTeamSelectModal = ref(false)
+const bracketTabRef = ref(null)
 const selectedGroupId = ref(null)
 const selectedPlayers = ref([])
 const showScrollToTop = ref(false)
+const dontShowAgain = ref(false)
+const dontShowBracketGuideAgain = ref(false)
+const teamSelectGroupId = ref(null)
 
 // 제공된 선수 목록
 const availablePlayers = [
@@ -259,6 +499,134 @@ const closeBulkAddModal = () => {
   selectedGroupId.value = null
   selectedPlayers.value = []
 }
+
+const closeGuideModal = () => {
+  showGuideModal.value = false
+  if (dontShowAgain.value) {
+    localStorage.setItem('polygonTennis_guideShown', 'true')
+  }
+  dontShowAgain.value = false
+}
+
+const closeBracketGuideModal = () => {
+  showBracketGuideModal.value = false
+  if (dontShowBracketGuideAgain.value) {
+    localStorage.setItem('polygonTennis_bracketGuideShown', 'true')
+  }
+  dontShowBracketGuideAgain.value = false
+}
+
+const handleOpenTeamSelect = (groupId) => {
+  console.log('handleOpenTeamSelect called with groupId:', groupId)
+  console.log('Current activeTab:', activeTab.value)
+  console.log('Current bracketTabRef:', bracketTabRef.value)
+  teamSelectGroupId.value = groupId
+  
+  // activeTab이 'bracket'이 아니면 먼저 탭을 변경
+  if (activeTab.value !== 'bracket') {
+    console.log('Switching to bracket tab')
+    activeTab.value = 'bracket'
+    
+    // nextTick을 여러 번 사용하여 컴포넌트가 마운트될 때까지 기다림
+    nextTick(() => {
+      nextTick(() => {
+        if (bracketTabRef.value) {
+          console.log('bracketTabRef found after tab switch (nextTick), opening modal')
+          bracketTabRef.value.selectedGroupId = groupId
+          bracketTabRef.value.selectedPlayers = []
+          showTeamSelectModal.value = true
+        } else {
+          console.log('bracketTabRef still null, waiting with setTimeout')
+          // 추가 대기 시간
+          setTimeout(() => {
+            if (bracketTabRef.value) {
+              console.log('bracketTabRef found after setTimeout, opening modal')
+              bracketTabRef.value.selectedGroupId = groupId
+              bracketTabRef.value.selectedPlayers = []
+              showTeamSelectModal.value = true
+            } else {
+              console.error('bracketTabRef is still null after all waits')
+              alert('팀 선택 기능을 사용할 수 없습니다. 페이지를 새로고침해주세요.')
+            }
+          }, 300)
+        }
+      })
+    })
+  } else {
+    // 이미 bracket 탭이 활성화되어 있으면 바로 처리
+    console.log('Already on bracket tab')
+    if (bracketTabRef.value) {
+      console.log('bracketTabRef exists, opening modal')
+      bracketTabRef.value.selectedGroupId = groupId
+      bracketTabRef.value.selectedPlayers = []
+      showTeamSelectModal.value = true
+    } else {
+      console.log('bracketTabRef is null on bracket tab, waiting...')
+      // ref가 없으면 기다림
+      nextTick(() => {
+        if (bracketTabRef.value) {
+          console.log('bracketTabRef found after nextTick, opening modal')
+          bracketTabRef.value.selectedGroupId = groupId
+          bracketTabRef.value.selectedPlayers = []
+          showTeamSelectModal.value = true
+        } else {
+          setTimeout(() => {
+            if (bracketTabRef.value) {
+              console.log('bracketTabRef found after setTimeout, opening modal')
+              bracketTabRef.value.selectedGroupId = groupId
+              bracketTabRef.value.selectedPlayers = []
+              showTeamSelectModal.value = true
+            } else {
+              console.error('bracketTabRef is still null after timeout')
+              alert('팀 선택 기능을 사용할 수 없습니다. 페이지를 새로고침해주세요.')
+            }
+          }, 300)
+        }
+      })
+    }
+  }
+}
+
+const closeTeamSelectModal = () => {
+  showTeamSelectModal.value = false
+  if (bracketTabRef.value) {
+    bracketTabRef.value.selectedPlayers = []
+  }
+  teamSelectGroupId.value = null
+}
+
+// BracketTab에서 모달 닫기 이벤트 수신
+watch(() => bracketTabRef.value, (newRef) => {
+  if (newRef) {
+    // 모달이 닫혀야 할 때 감지
+    watch(() => newRef.selectedPlayers, () => {
+      // 대진표 생성 후 모달이 자동으로 닫히도록 처리
+    })
+  }
+})
+
+const getBracketGroupName = computed(() => {
+  if (!teamSelectGroupId.value) return ''
+  const group = groups.value.find(g => g.id === teamSelectGroupId.value)
+  if (!group) return ''
+  
+  // 그룹 ID를 알파벳 레이블로 변환
+  const getGroupLabel = (groupId) => {
+    if (groupId >= 1 && groupId <= 26) {
+      return String.fromCharCode(64 + groupId) + '그룹'
+    }
+    let label = ''
+    let num = groupId
+    while (num > 0) {
+      const remainder = (num - 1) % 26
+      label = String.fromCharCode(65 + remainder) + label
+      num = Math.floor((num - 1) / 26)
+    }
+    return label + '그룹'
+  }
+  
+  return getGroupLabel(group.id)
+})
 
 const tabs = [
   { 
@@ -372,6 +740,23 @@ watch(activeTab, () => {
     if (hasChanges && !isSaving) {
       saveGroupsToStorage(true) // skipRemoveEmpty = true (이미 제거했으므로)
     }
+    
+    // 탭 변경 시 첫 사용자 가이드 체크
+    if (activeTab.value === 'groups') {
+      const guideShown = localStorage.getItem('polygonTennis_guideShown')
+      if (!guideShown) {
+        setTimeout(() => {
+          showGuideModal.value = true
+        }, 500)
+      }
+    } else if (activeTab.value === 'bracket') {
+      const bracketGuideShown = localStorage.getItem('polygonTennis_bracketGuideShown')
+      if (!bracketGuideShown) {
+        setTimeout(() => {
+          showBracketGuideModal.value = true
+        }, 500)
+      }
+    }
   })
 })
 
@@ -401,6 +786,23 @@ onMounted(() => {
   // 스크롤 이벤트 리스너 등록
   window.addEventListener('scroll', handleScroll)
   handleScroll() // 초기 상태 확인
+  
+  // 첫 사용자 체크 - 가이드 모달 표시
+  const guideShown = localStorage.getItem('polygonTennis_guideShown')
+  if (!guideShown && activeTab.value === 'groups') {
+    // 약간의 지연 후 가이드 표시 (UI가 완전히 로드된 후)
+    setTimeout(() => {
+      showGuideModal.value = true
+    }, 500)
+  }
+  
+  // 팀 선택 탭 첫 사용자 체크
+  const bracketGuideShown = localStorage.getItem('polygonTennis_bracketGuideShown')
+  if (!bracketGuideShown && activeTab.value === 'bracket') {
+    setTimeout(() => {
+      showBracketGuideModal.value = true
+    }, 500)
+  }
 })
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
@@ -730,6 +1132,9 @@ const generateRandomBracket = (bracketData) => {
   animation: fadeInUp 0.8s ease-out 0.4s both;
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .bulk-add-top-btn {
@@ -767,6 +1172,56 @@ const generateRandomBracket = (bracketData) => {
   flex-shrink: 0;
 }
 
+.guide-btn {
+  width: auto;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 1;
+}
+
+.guide-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(33, 150, 243, 0.4);
+}
+
+.guide-btn:active {
+  transform: translateY(0);
+}
+
+.guide-btn svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-btn span {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
 /* 모달 스타일 */
 .modal-overlay {
   position: fixed;
@@ -801,6 +1256,10 @@ const generateRandomBracket = (bracketData) => {
   max-width: 600px;
 }
 
+.guide-modal {
+  max-width: 600px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -811,7 +1270,7 @@ const generateRandomBracket = (bracketData) => {
 
 .modal-header h3 {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: #1a1a1a;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -1053,6 +1512,451 @@ const generateRandomBracket = (bracketData) => {
 .add-selected-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 가이드 모달 스타일 */
+.guide-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.guide-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.guide-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.guide-step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.guide-step-content {
+  flex: 1;
+}
+
+.guide-step-content h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+}
+
+.guide-step-content p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #4b5563;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+}
+
+.guide-step-content p strong {
+  color: #2196F3;
+  font-weight: 600;
+}
+
+.guide-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 2px solid #f3f4f6;
+  margin-top: 1rem;
+}
+
+.guide-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+}
+
+.guide-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #2196F3;
+}
+
+.guide-close-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.guide-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+.guide-close-btn:active {
+  transform: translateY(0);
+}
+
+/* 팀 구성하기 모달 스타일 */
+.team-select-modal {
+  max-width: 800px;
+}
+
+.modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.modal-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.modal-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
+}
+
+.modal-info-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(102, 187, 106, 0.08) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  color: #4b5563;
+  font-weight: 500;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.modal-info-card svg {
+  color: #4CAF50;
+  flex-shrink: 0;
+}
+
+.team-count-alert {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(251, 191, 36, 0.3);
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+.team-count-alert svg {
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.team-count-alert-content {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.team-count-alert-content > div {
+  margin-bottom: 0.25rem;
+}
+
+.team-count-alert-content > div:last-child {
+  margin-bottom: 0;
+}
+
+.team-count-suggestion {
+  font-weight: 600;
+  margin-top: 0.375rem;
+  padding-top: 0.375rem;
+  border-top: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.player-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.player-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.625rem;
+  flex-shrink: 0;
+}
+
+.player-section-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #1f2937;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  margin: 0;
+}
+
+.player-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
+  padding: 0.3rem 0.625rem;
+  border-radius: 8px;
+}
+
+.player-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.625rem;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, rgba(249, 250, 251, 0.8) 0%, rgba(243, 244, 246, 0.8) 100%);
+  border-radius: 12px;
+  border: 2px solid rgba(76, 175, 80, 0.15);
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  max-height: 400px;
+}
+
+.player-list-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.player-list-grid::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.player-list-grid::-webkit-scrollbar-thumb {
+  background: #7f5217;
+  border-radius: 4px;
+}
+
+.player-list-grid::-webkit-scrollbar-thumb:hover {
+  background: #6b4312;
+}
+
+.player-chip {
+  padding: 0.875rem 1rem;
+  border: 2px solid rgba(76, 175, 80, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+  color: #374151;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: visible;
+  word-break: keep-all;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.player-chip:hover {
+  border-color: rgba(76, 175, 80, 0.5);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(102, 187, 106, 0.1) 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.2);
+}
+
+.player-chip.selected {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 
+    0 8px 24px rgba(76, 175, 80, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  font-weight: 700;
+  transform: translateY(-2px);
+}
+
+.player-name {
+  flex: 1;
+}
+
+.selection-order {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  box-shadow: 
+    0 4px 12px rgba(251, 191, 36, 0.4),
+    0 0 0 3px white;
+  z-index: 10;
+  flex-shrink: 0;
+  line-height: 1;
+  min-width: 26px;
+  animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.team-select-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+  flex-shrink: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(76, 175, 80, 0.1);
+}
+
+.clear-btn {
+  flex: 1;
+  padding: 0.875rem 0.875rem;
+  font-size: 0.75rem;
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+  color: #ef4444;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 48px;
+}
+
+.clear-btn:hover:not(:disabled) {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.15) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.clear-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.generate-bracket-btn {
+  flex: 2;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.75rem;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 48px;
+  position: relative;
+}
+
+.generate-bracket-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+}
+
+.generate-bracket-btn:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.generate-bracket-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generate-bracket-btn.invalid-team-count {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%);
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.3);
+}
+
+.generate-bracket-btn.invalid-team-count:hover:not(:disabled) {
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
+}
+
+.team-count-warning {
+  font-size: 1rem;
+  margin-left: 0.25rem;
 }
 
 @keyframes fadeIn {
@@ -1298,6 +2202,28 @@ const generateRandomBracket = (bracketData) => {
   .scroll-to-top-btn svg {
     width: 18px;
     height: 18px;
+  }
+
+  .bulk-add-section {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .guide-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+  }
+
+  .guide-btn span {
+    display: inline;
+  }
+
+  .bulk-add-top-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.75rem;
+    min-height: 40px;
   }
 }
 </style>

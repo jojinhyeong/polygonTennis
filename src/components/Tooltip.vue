@@ -33,7 +33,10 @@ const showTooltip = ref(false)
 <style scoped>
 .tooltip-wrapper {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  align-items: center;
 }
 
 .tooltip {

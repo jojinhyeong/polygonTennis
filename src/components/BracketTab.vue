@@ -8,7 +8,15 @@
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
           </svg>
         </div>
-        <h2 class="controls-title">팀 선택 복식 토너먼트 생성</h2>
+        <h2 class="controls-title">팀 선택 토너먼트 생성</h2>
+        <button class="guide-btn" @click="$emit('show-guide')" title="팀 선택 사용 방법을 확인하세요">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" fill="white" stroke="#2196F3" stroke-width="2"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17" stroke="#2196F3" stroke-width="2" stroke-linecap="round"></line>
+          </svg>
+          <span>사용법</span>
+        </button>
       </div>
       <div class="controls-body">
         <div class="control-group">
@@ -120,108 +128,6 @@
       <p>그룹을 선택하고 팀을 선택하여 대진표를 생성하세요</p>
     </div>
 
-    <!-- 팀 선택 모달 -->
-    <div v-if="showTeamSelectModal" class="modal-overlay" @click.self="closeTeamSelectModal">
-      <div class="modal-content team-select-modal">
-        <div class="modal-header">
-          <div class="modal-header-content">
-            <div class="modal-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-            </div>
-            <div>
-              <h3>팀 구성하기</h3>
-              <p class="modal-subtitle">{{ selectedGroupName }}</p>
-            </div>
-          </div>
-          <button class="modal-close-btn" @click="closeTeamSelectModal">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <div ref="modalBodyRef" class="modal-body">
-          <div class="modal-info-card">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
-            <span>선수들을 선택한 순서대로 2명씩 팀이 구성됩니다</span>
-          </div>
-          <div v-if="selectedPlayers.length >= 4 && (!isTeamCountValid || selectedPlayers.length % 2 !== 0) && getTeamCountSuggestion" class="team-count-alert">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-            <div class="team-count-alert-content">
-              <div v-if="selectedPlayers.length % 2 !== 0">홀수명은 선택할 수 없습니다. (현재: {{ selectedPlayers.length }}명)</div>
-              <div v-else>토너먼트를 위해 팀 수는 2, 4, 8, 16... 이어야 합니다.</div>
-              <div class="team-count-suggestion" v-if="getTeamCountSuggestion">현재: {{ getTeamCount }}팀 ({{ selectedPlayers.length }}명) → 추천: {{ getTeamCountSuggestion.teamCount }}팀 ({{ getTeamCountSuggestion.playerCount }}명, {{ getTeamCountSuggestion.diff }}명 {{ getTeamCountSuggestion.action }})</div>
-            </div>
-          </div>
-
-          <!-- 선수 목록 -->
-          <div class="player-section">
-            <div class="player-section-header">
-              <h4 class="player-section-title">선수 선택</h4>
-              <span class="player-count">{{ availablePlayers.length }}명</span>
-            </div>
-            <div ref="playerListRef" class="player-list-grid">
-              <button
-                v-for="player in availablePlayers"
-                :key="player"
-                :ref="el => { 
-                  if (el && selectedPlayers.includes(player) && playerButtonRefs.value) {
-                    playerButtonRefs.value[player] = el 
-                  } else if (!el && playerButtonRefs.value && playerButtonRefs.value[player]) {
-                    delete playerButtonRefs.value[player]
-                  }
-                }"
-                :class="['player-chip', {
-                  selected: selectedPlayers.includes(player)
-                }]"
-                @click="togglePlayer(player)"
-              >
-                <span class="player-name">{{ player }}</span>
-                <span v-if="selectedPlayers.includes(player)" class="selection-order">
-                  {{ getSelectionOrder(player) }}
-                </span>
-              </button>
-            </div>
-          </div>
-
-          <div class="team-select-actions">
-            <button class="clear-btn" @click="clearSelection" :disabled="selectedPlayers.length === 0">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-              <span>전체 해제</span>
-            </button>
-            <button 
-              class="generate-bracket-btn" 
-              :class="{ 'invalid-team-count': selectedPlayers.length >= 4 && (!isTeamCountValid || selectedPlayers.length % 2 !== 0) }"
-              @click="generateBracketFromSelected" 
-              :disabled="selectedPlayers.length < 4 || selectedPlayers.length % 2 !== 0 || !isTeamCountValid"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 11 12 14 22 4"></polyline>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-              </svg>
-              <span>대진표 생성 ({{ getTeamCount }}팀)</span>
-              <span v-if="selectedPlayers.length >= 4 && (!isTeamCountValid || selectedPlayers.length % 2 !== 0)" class="team-count-warning">⚠️</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- 생성 완료 모달 -->
     <SuccessModal 
@@ -229,6 +135,7 @@
       message="대진표가 성공적으로 생성되었습니다."
       @close="showSuccessModal = false"
     />
+
   </div>
 </template>
 
@@ -246,12 +153,11 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update-bracket'])
+const emit = defineEmits(['update-bracket', 'show-guide', 'open-team-select', 'close-team-select'])
 
 const selectedGroupId = ref('')
 const bracketsByGroup = ref(new Map())
 const selectedViewGroupId = ref(null)
-const showTeamSelectModal = ref(false)
 const selectedPlayers = ref([])
 const playerListRef = ref(null)
 const playerButtonRefs = ref({})
@@ -406,6 +312,7 @@ const previewTeams = computed(() => {
 })
 
 const openTeamSelectModal = () => {
+  console.log('openTeamSelectModal called, selectedGroupId:', selectedGroupId.value)
   if (selectedGroupId.value === '') {
     alert('그룹을 선택해주세요.')
     return
@@ -422,23 +329,10 @@ const openTeamSelectModal = () => {
     return
   }
 
-  showTeamSelectModal.value = true
-  selectedPlayers.value = []
-  
-  // 모달이 열릴 때 스크롤을 맨 위로 초기화
-  setTimeout(() => {
-    if (modalBodyRef.value) {
-      modalBodyRef.value.scrollTop = 0
-    }
-  }, 100)
+  console.log('Emitting open-team-select with groupId:', selectedGroupId.value)
+  emit('open-team-select', selectedGroupId.value)
 }
 
-const closeTeamSelectModal = () => {
-  showTeamSelectModal.value = false
-  selectedPlayers.value = []
-  // refs 초기화
-  playerButtonRefs.value = {}
-}
 
 const togglePlayer = (playerName) => {
   const index = selectedPlayers.value.indexOf(playerName)
@@ -592,7 +486,7 @@ const generateBracketFromSelected = () => {
   selectedViewGroupId.value = group.id
 
   // 모달 닫기
-  closeTeamSelectModal()
+  emit('close-team-select')
 
   // 로컬스토리지에 저장
   saveBracketTabState()
@@ -724,6 +618,21 @@ onMounted(() => {
   loadBracketTabState()
 })
 
+// 부모 컴포넌트에서 접근할 수 있도록 expose
+defineExpose({
+  selectedGroupId,
+  selectedPlayers,
+  availablePlayers,
+  getTeamCount,
+  isTeamCountValid,
+  getTeamCountSuggestion,
+  togglePlayer,
+  clearSelection,
+  generateBracketFromSelected,
+  getSelectionOrder,
+  getGroupLabel
+})
+
 
 const createDoubleBracket = (players) => {
   // 복식: 2명씩 팀 구성
@@ -839,6 +748,7 @@ const createDoubleBracket = (players) => {
   margin-bottom: 1rem;
   padding-bottom: 0.875rem;
   border-bottom: 1px solid rgba(76, 175, 80, 0.1);
+  flex-wrap: wrap;
 }
 
 .header-icon {
@@ -883,6 +793,59 @@ const createDoubleBracket = (players) => {
   margin: 0;
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
   letter-spacing: -0.02em;
+  flex: 1;
+}
+
+.guide-btn {
+  width: auto;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.guide-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(33, 150, 243, 0.4);
+}
+
+.guide-btn:active {
+  transform: translateY(0);
+}
+
+.guide-btn svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-btn span {
+  display: flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .controls-body {
@@ -2031,6 +1994,16 @@ const createDoubleBracket = (players) => {
   .player-chip {
     padding: 0.5rem 0.625rem;
     font-size: 0.8rem;
+  }
+
+  .guide-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+  }
+
+  .guide-btn span {
+    display: inline;
   }
 
   .team-preview {

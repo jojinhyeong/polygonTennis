@@ -8,7 +8,7 @@
             <polyline points="8 6 2 12 8 18"></polyline>
           </svg>
         </div>
-        <h2 class="controls-title">팀 랜덤 복식 토너먼트 생성</h2>
+        <h2 class="controls-title">팀 랜덤 토너먼트 생성</h2>
       </div>
       <div class="controls-body">
         <div class="control-group">
