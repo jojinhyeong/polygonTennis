@@ -50,19 +50,21 @@ const close = () => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 10000;
   padding: 1rem;
+  padding-top: 15vh;
+  padding-bottom: 50vh;
   overflow-y: auto;
   overflow-x: hidden;
   animation: fadeIn 0.3s ease-out;
   /* 모바일 브라우저 호환성을 위한 추가 */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  /* 뷰포트 중앙 정렬 보장 */
-  height: 100vh;
-  height: 100dvh; /* 동적 뷰포트 높이 지원 */
+  /* 전체 문서 높이만큼 배경 보장 */
+  min-height: 100vh;
+  min-height: 100dvh; /* 동적 뷰포트 높이 지원 */
 }
 
 @keyframes fadeIn {
@@ -87,7 +89,8 @@ const close = () => {
   animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
-  margin: auto;
+  margin: 0 auto;
+  margin-bottom: 2rem;
   /* 뷰포트 중앙에 정확히 배치 */
   flex-shrink: 0;
 }
@@ -200,12 +203,15 @@ const close = () => {
 @media (max-width: 768px) {
   .success-modal-overlay {
     padding: 0.5rem;
+    padding-top: 10vh;
+    padding-bottom: 50vh;
   }
 
   .success-modal {
     padding: 1.5rem 1.75rem;
     width: 90%;
     max-height: 90vh;
+    margin-bottom: 2rem;
   }
 
   .success-title {
