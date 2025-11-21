@@ -126,7 +126,7 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, watch, onMounted } from 'vue'
+import { ref, computed, defineProps, watch, onMounted } from 'vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'

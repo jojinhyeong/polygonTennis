@@ -233,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, defineProps, defineEmits, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, defineProps, nextTick, onMounted } from 'vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'

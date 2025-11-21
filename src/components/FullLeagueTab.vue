@@ -453,7 +453,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, defineProps, onMounted } from 'vue'
+import { ref, computed, watch, defineProps, onMounted, nextTick } from 'vue'
 import SelectInput from './SelectInput.vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SuccessModal from './SuccessModal.vue'
@@ -1228,8 +1228,10 @@ const generateFullLeague = () => {
 
   saveLeagueData()
   
-  // 생성 완료 모달 표시
-  showSuccessModal.value = true
+  // 생성 완료 모달 표시 (다음 틱에서 표시하여 DOM 업데이트 보장)
+  nextTick(() => {
+    showSuccessModal.value = true
+  })
 }
 
 // 우승자 처리
@@ -1246,30 +1248,16 @@ const handleChampionWinner = ({ winner, winnerTeam }) => {
   showCelebration.value = false
   showWinnerModal.value = false
   
-  // 화면을 맨 위로 이동
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  })
-  
   // 잠시 후 새로 표시
   setTimeout(() => {
     showCelebration.value = true
     showWinnerModal.value = true
     
-    // 모달이 열릴 때 다시 맨 위로 이동 (스크롤이 이동했을 수 있으므로)
-    setTimeout(() => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      })
-    }, 100)
-    
     // 3초 후 팡파레 이펙트 제거
     setTimeout(() => {
       showCelebration.value = false
     }, 3000)
-  }, 100)
+  }, 300)
 }
 
 const closeWinnerModal = () => {
@@ -2572,12 +2560,11 @@ onMounted(() => {
   bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   z-index: 9999;
   animation: fadeIn 0.3s ease-out;
   padding: 1rem;
-  padding-top: 2rem;
   overflow-y: auto;
 }
 
@@ -2594,7 +2581,7 @@ onMounted(() => {
   animation: modalSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   overflow: hidden;
-  margin-top: 1rem;
+  margin: auto;
 }
 
 .winner-modal::before {
@@ -2698,11 +2685,9 @@ onMounted(() => {
 @media (max-width: 768px) {
   .winner-modal-overlay {
     padding: 0.5rem;
-    padding-top: 1rem;
   }
 
   .winner-modal {
-    margin-top: 0.5rem;
     max-height: 90vh;
   }
 }

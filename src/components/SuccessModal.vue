@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
+import { defineProps } from 'vue'
 
 const props = defineProps({
   show: {
@@ -57,6 +57,12 @@ const close = () => {
   overflow-y: auto;
   overflow-x: hidden;
   animation: fadeIn 0.3s ease-out;
+  /* 모바일 브라우저 호환성을 위한 추가 */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  /* 뷰포트 중앙 정렬 보장 */
+  height: 100vh;
+  height: 100dvh; /* 동적 뷰포트 높이 지원 */
 }
 
 @keyframes fadeIn {
@@ -82,6 +88,8 @@ const close = () => {
   position: relative;
   overflow: hidden;
   margin: auto;
+  /* 뷰포트 중앙에 정확히 배치 */
+  flex-shrink: 0;
 }
 
 .success-modal::before {
