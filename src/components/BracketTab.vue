@@ -145,6 +145,7 @@ import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'
 import Tooltip from './Tooltip.vue'
+import { saveBracketToRealtime, loadBracketFromRealtime, PATHS } from '../firebase/realtimeService'
 
 const props = defineProps({
   groups: {
@@ -497,8 +498,8 @@ const generateBracketFromSelected = () => {
   showSuccessModal.value = true
 }
 
-// 로컬스토리지에 저장
-const saveBracketTabState = () => {
+// Realtime Database에 저장
+const saveBracketTabState = async () => {
   try {
     const state = {
       bracketsByGroup: Object.fromEntries(bracketsByGroup.value),
@@ -506,18 +507,31 @@ const saveBracketTabState = () => {
       selectedPlayers: selectedPlayers.value,
       selectedGroupId: selectedGroupId.value
     }
-    localStorage.setItem('polygonTennis_bracketTab', JSON.stringify(state))
+    
+    // Realtime Database에 저장
+    await saveBracketToRealtime(PATHS.BRACKET_TAB, 'default', state)
+    console.log('✅ Realtime Database에 대진표 데이터 저장 완료')
   } catch (error) {
     console.error('팀선택 탭 데이터 저장 실패:', error)
   }
 }
 
-// 로컬스토리지에서 불러오기
-const loadBracketTabState = () => {
+// Realtime Database에서 불러오기
+const loadBracketTabState = async () => {
   try {
-    const saved = localStorage.getItem('polygonTennis_bracketTab')
-    if (saved) {
-      const state = JSON.parse(saved)
+    let state = null
+    
+    // Realtime Database에서 불러오기 시도
+    try {
+      const realtimeData = await loadBracketFromRealtime(PATHS.BRACKET_TAB, 'default')
+      if (realtimeData) {
+        state = realtimeData
+      }
+    } catch (realtimeError) {
+      console.warn('Realtime Database 불러오기 실패:', realtimeError)
+    }
+    
+    if (state) {
       if (state.bracketsByGroup) {
         // 실제로 존재하는 그룹만 필터링
         const validBrackets = new Map()

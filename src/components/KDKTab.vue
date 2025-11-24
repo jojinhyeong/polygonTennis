@@ -318,6 +318,7 @@ import { ref, computed, defineProps, watch, onMounted } from 'vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'
 import Tooltip from './Tooltip.vue'
+import { saveBracketToRealtime, loadBracketFromRealtime, PATHS } from '../firebase/realtimeService'
 
 const props = defineProps({
   groups: {
@@ -419,14 +420,14 @@ const clearSeeds = () => {
 }
 
 // 그룹 변경 시 시드 초기화
-watch(selectedGroupId, () => {
+watch(selectedGroupId, async () => {
   selectedSeeds.value = []
   // 그룹별 시드 정보 불러오기
-  loadSeedsForGroup(selectedGroupId.value)
+  await loadSeedsForGroup(selectedGroupId.value)
 })
 
-// 로컬스토리지에 저장
-const saveKDKTabState = () => {
+// Realtime Database에 저장
+const saveKDKTabState = async () => {
   try {
     const state = {
       kdkMatchesByGroup: Object.fromEntries(kdkMatchesByGroup.value),
@@ -434,44 +435,52 @@ const saveKDKTabState = () => {
       seedsByGroup: {} // 그룹별 시드 정보 저장
     }
     
-    // 각 그룹별 시드 정보 저장
-    props.groups.forEach(group => {
-      const saved = localStorage.getItem(`polygonTennis_kdkSeeds_${group.id}`)
-      if (saved) {
-        try {
-          state.seedsByGroup[group.id] = JSON.parse(saved)
-        } catch (e) {
-          // 무시
-        }
-      }
-    })
+    // 현재 선택된 그룹의 시드 정보 저장 (Realtime Database에 포함)
+    if (selectedGroupId.value && selectedSeeds.value && selectedSeeds.value.length > 0) {
+      state.seedsByGroup[selectedGroupId.value] = selectedSeeds.value
+    }
     
-    localStorage.setItem('polygonTennis_kdkTab', JSON.stringify(state))
+    // 기존에 저장된 다른 그룹의 시드 정보도 유지하기 위해 불러오기
+    try {
+      const existingData = await loadBracketFromRealtime(PATHS.KDK_TAB, 'default')
+      if (existingData && existingData.seedsByGroup) {
+        // 기존 시드 정보 병합 (현재 그룹 제외)
+        Object.keys(existingData.seedsByGroup).forEach(groupId => {
+          if (groupId != selectedGroupId.value) {
+            state.seedsByGroup[groupId] = existingData.seedsByGroup[groupId]
+          }
+        })
+      }
+    } catch (error) {
+      // 기존 데이터 불러오기 실패해도 계속 진행
+      console.warn('기존 시드 정보 불러오기 실패:', error)
+    }
+    
+    // Realtime Database에 저장
+    await saveBracketToRealtime(PATHS.KDK_TAB, 'default', state)
+    console.log('✅ Realtime Database에 한울AA 데이터 저장 완료')
   } catch (error) {
     console.error('한울AA 탭 데이터 저장 실패:', error)
   }
 }
 
-// 그룹별 시드 정보 저장
+// 그룹별 시드 정보 저장 (Realtime Database에 저장)
 const saveSeedsForGroup = (groupId) => {
   if (!groupId) return
-  try {
-    localStorage.setItem(`polygonTennis_kdkSeeds_${groupId}`, JSON.stringify(selectedSeeds.value))
-  } catch (error) {
-    console.error('시드 정보 저장 실패:', error)
-  }
+  // 시드 정보는 saveKDKTabState에서 함께 저장됨
+  saveKDKTabState()
 }
 
-// 그룹별 시드 정보 불러오기
-const loadSeedsForGroup = (groupId) => {
+// 그룹별 시드 정보 불러오기 (Realtime Database에서)
+const loadSeedsForGroup = async (groupId) => {
   if (!groupId) {
     selectedSeeds.value = []
     return
   }
   try {
-    const saved = localStorage.getItem(`polygonTennis_kdkSeeds_${groupId}`)
-    if (saved) {
-      selectedSeeds.value = JSON.parse(saved)
+    const realtimeData = await loadBracketFromRealtime(PATHS.KDK_TAB, 'default')
+    if (realtimeData && realtimeData.seedsByGroup && realtimeData.seedsByGroup[groupId]) {
+      selectedSeeds.value = realtimeData.seedsByGroup[groupId]
     } else {
       selectedSeeds.value = []
     }
@@ -481,12 +490,22 @@ const loadSeedsForGroup = (groupId) => {
   }
 }
 
-// 로컬스토리지에서 불러오기
-const loadKDKTabState = () => {
+// Realtime Database에서 불러오기
+const loadKDKTabState = async () => {
   try {
-    const saved = localStorage.getItem('polygonTennis_kdkTab')
-    if (saved) {
-      const state = JSON.parse(saved)
+    let state = null
+    
+    // Realtime Database에서 불러오기 시도
+    try {
+      const realtimeData = await loadBracketFromRealtime(PATHS.KDK_TAB, 'default')
+      if (realtimeData) {
+        state = realtimeData
+      }
+    } catch (realtimeError) {
+      console.warn('Realtime Database 불러오기 실패:', realtimeError)
+    }
+    
+    if (state) {
       if (state.kdkMatchesByGroup) {
         // 실제로 존재하는 그룹만 필터링
         const validMatches = new Map()
@@ -500,6 +519,7 @@ const loadKDKTabState = () => {
         kdkMatchesByGroup.value = validMatches
         
         // selectedViewGroupId도 실제 존재하는 그룹인지 확인
+        let restoredViewGroupId = null
         if (state.selectedViewGroupId) {
           const groupIdNum = typeof state.selectedViewGroupId === 'string' 
             ? parseInt(state.selectedViewGroupId) 
@@ -507,11 +527,41 @@ const loadKDKTabState = () => {
           const group = props.groups.find(g => g.id === groupIdNum)
           if (group && validMatches.has(groupIdNum)) {
             selectedViewGroupId.value = groupIdNum
+            restoredViewGroupId = groupIdNum
           } else if (validMatches.size > 0) {
             // 선택된 그룹이 없으면 첫 번째 유효한 그룹 선택
             selectedViewGroupId.value = Array.from(validMatches.keys())[0]
+            restoredViewGroupId = selectedViewGroupId.value
           } else {
             selectedViewGroupId.value = null
+          }
+        }
+        
+        // 시드 정보 복원
+        // 대진표가 있는 그룹 중 첫 번째 그룹의 시드 정보를 불러옴
+        // 또는 selectedGroupId가 설정되어 있으면 해당 그룹의 시드 정보를 불러옴
+        if (state.seedsByGroup) {
+          let groupIdToLoad = null
+          
+          // selectedGroupId가 설정되어 있으면 우선 사용
+          if (selectedGroupId.value) {
+            groupIdToLoad = selectedGroupId.value
+          } 
+          // 그렇지 않으면 대진표가 있는 그룹 중 첫 번째 그룹 사용
+          else if (restoredViewGroupId) {
+            groupIdToLoad = restoredViewGroupId
+          }
+          // 그렇지 않으면 대진표가 있는 모든 그룹 중 첫 번째 그룹 사용
+          else if (validMatches.size > 0) {
+            groupIdToLoad = Array.from(validMatches.keys())[0]
+          }
+          
+          if (groupIdToLoad) {
+            const groupSeeds = state.seedsByGroup[groupIdToLoad]
+            if (groupSeeds && Array.isArray(groupSeeds)) {
+              selectedSeeds.value = groupSeeds
+              console.log('✅ 시드 정보 복원 완료:', groupIdToLoad, groupSeeds)
+            }
           }
         }
       }
@@ -527,6 +577,7 @@ watch(kdkMatchesByGroup, () => {
 }, { deep: true })
 
 // selectedViewGroupId 변경 시 저장
+// 시드 정보는 selectedGroupId에 따라 저장되므로, selectedViewGroupId 변경 시에는 불러오지 않음
 watch(selectedViewGroupId, () => {
   saveKDKTabState()
 })
@@ -562,10 +613,12 @@ watch(() => props.groups, () => {
 }, { deep: true })
 
 // 컴포넌트 마운트 시 불러오기
-onMounted(() => {
-  loadKDKTabState()
-  if (selectedGroupId.value) {
-    loadSeedsForGroup(selectedGroupId.value)
+onMounted(async () => {
+  await loadKDKTabState()
+  // loadKDKTabState에서 이미 시드 정보를 복원하므로 추가 호출 불필요
+  // 단, selectedViewGroupId가 설정되었지만 시드 정보가 없는 경우를 대비
+  if (selectedViewGroupId.value && selectedSeeds.value.length === 0) {
+    await loadSeedsForGroup(selectedViewGroupId.value)
   }
 })
 

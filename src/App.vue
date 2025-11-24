@@ -406,6 +406,7 @@ import RandomBracketTab from './components/RandomBracketTab.vue'
 import KDKTab from './components/KDKTab.vue'
 import FullLeagueTab from './components/FullLeagueTab.vue'
 import Tooltip from './components/Tooltip.vue'
+import { saveGroupsToRealtime, loadGroupsFromRealtime, testRealtimeConnection, deleteGroupBracketFromRealtime, PATHS } from './firebase/realtimeService'
 
 const activeTab = ref('groups')
 const showGroupSelectModal = ref(false)
@@ -656,21 +657,36 @@ const tabs = [
   }
 ]
 
-// 로컬스토리지에서 그룹 불러오기
-const loadGroupsFromStorage = () => {
+// Realtime Database에서 그룹 불러오기
+const loadGroupsFromStorage = async () => {
+  console.log('=== 그룹 불러오기 시작 ===')
   try {
-    const savedGroups = localStorage.getItem('polygonTennis_groups')
-    if (savedGroups) {
-      const parsed = JSON.parse(savedGroups)
-      // 유효성 검사: 배열이고 최소 1개 이상인지 확인
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed
-      }
+    console.log('Realtime Database에서 그룹 데이터 불러오기 시도...')
+    const realtimeGroups = await loadGroupsFromRealtime('default')
+    console.log('Realtime Database 응답:', realtimeGroups)
+    
+    if (realtimeGroups && Array.isArray(realtimeGroups) && realtimeGroups.length > 0) {
+      // 각 그룹에 players 배열이 없으면 빈 배열로 초기화
+      const normalizedGroups = realtimeGroups.map(group => ({
+        ...group,
+        players: group.players || []
+      }))
+      console.log('✅ Realtime Database에서 그룹 데이터를 불러왔습니다:', normalizedGroups.length, '개 그룹')
+      console.log('불러온 그룹:', normalizedGroups)
+      console.log('=== 그룹 불러오기 완료 ===')
+      return normalizedGroups
+    } else {
+      console.log('⚠️ Realtime Database에 그룹 데이터가 없습니다.')
     }
-  } catch (error) {
-    console.error('그룹 데이터 불러오기 실패:', error)
+  } catch (realtimeError) {
+    console.error('❌ Realtime Database 불러오기 실패:', realtimeError)
+    console.error('에러 코드:', realtimeError?.code)
+    console.error('에러 메시지:', realtimeError?.message)
   }
-  // 기본값 반환
+  
+  // 기본값 반환 (데이터가 없을 경우)
+  console.log('기본 그룹 데이터를 사용합니다')
+  console.log('=== 그룹 불러오기 완료 ===')
   return [
     {
       id: 1,
@@ -701,9 +717,18 @@ const removeEmptyPlayers = () => {
 let isSaving = false
 let isRemovingEmpty = false
 
-// 그룹을 로컬스토리지에 저장 (비어있는 선수 제거 없이)
-const saveGroupsToStorage = (skipRemoveEmpty = false) => {
-  if (isSaving) return // 이미 저장 중이면 무시
+// 그룹을 Firestore에 저장 (비어있는 선수 제거 없이)
+const saveGroupsToStorage = async (skipRemoveEmpty = false) => {
+  if (isSaving) {
+    console.log('⚠️ 이미 저장 중입니다. 건너뜁니다.')
+    return // 이미 저장 중이면 무시
+  }
+  
+  console.log('=== 그룹 저장 함수 호출 ===')
+  console.log('현재 그룹 수:', groups.value.length)
+  console.log('skipRemoveEmpty:', skipRemoveEmpty)
+  console.log('isRemovingEmpty:', isRemovingEmpty)
+  
   try {
     isSaving = true
     // skipRemoveEmpty가 false일 때만 비어있는 선수 제거
@@ -712,15 +737,35 @@ const saveGroupsToStorage = (skipRemoveEmpty = false) => {
       removeEmptyPlayers()
       isRemovingEmpty = false
     }
-    localStorage.setItem('polygonTennis_groups', JSON.stringify(groups.value))
+    
+    console.log('Realtime Database 저장 시도...')
+    console.log('저장할 그룹:', groups.value)
+    
+    // Realtime Database에 저장
+    await saveGroupsToRealtime('default', groups.value)
+    console.log('✅ Realtime Database에 그룹 데이터 저장 완료:', groups.value.length, '개 그룹')
   } catch (error) {
-    console.error('그룹 데이터 저장 실패:', error)
+    console.error('❌ 그룹 데이터 저장 실패:', error)
+    console.error('에러 상세:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    })
+    alert(`그룹 저장 실패: ${error.message}\n콘솔을 확인해주세요.`)
   } finally {
     isSaving = false
+    console.log('=== 그룹 저장 함수 종료 ===')
   }
 }
 
-const groups = ref(loadGroupsFromStorage())
+// 그룹 데이터를 비동기로 불러오기 (초기값 설정)
+const groups = ref([
+  {
+    id: 1,
+    name: '그룹 1',
+    players: []
+  }
+])
 
 // 그룹이 변경될 때마다 자동 저장 (비어있는 선수 제거는 하지 않음)
 watch(groups, () => {
@@ -774,7 +819,23 @@ const scrollToTop = () => {
 }
 
 // 컴포넌트 마운트 시 저장 (초기 로드 후, 비어있는 선수 제거 포함)
-onMounted(() => {
+onMounted(async () => {
+  // Realtime Database 연결 테스트
+  console.log('=== 앱 마운트 시작 ===')
+  const isConnected = await testRealtimeConnection()
+  if (!isConnected) {
+    alert('Realtime Database 연결에 실패했습니다. 콘솔을 확인해주세요.')
+  }
+  
+  // 그룹 데이터 불러오기
+  const loadedGroups = await loadGroupsFromStorage()
+  if (loadedGroups && Array.isArray(loadedGroups) && loadedGroups.length > 0) {
+    groups.value = loadedGroups
+    console.log('불러온 그룹으로 초기화 완료:', groups.value.length, '개')
+  } else {
+    console.log('기본 그룹으로 초기화')
+  }
+  
   nextTick(() => {
     if (!isRemovingEmpty) {
       isRemovingEmpty = true
@@ -836,66 +897,35 @@ const removeGroup = (groupId) => {
   }
 }
 
-// 그룹 삭제 시 해당 그룹의 대진표 데이터를 로컬 스토리지에서 삭제
-const removeGroupBracketData = (groupId) => {
+// 그룹 삭제 시 해당 그룹의 대진표 데이터를 Realtime Database에서 삭제
+const removeGroupBracketData = async (groupId) => {
   try {
     // 팀 선택 탭 데이터 삭제
-    const bracketTabData = localStorage.getItem('polygonTennis_bracketTab')
-    if (bracketTabData) {
-      const state = JSON.parse(bracketTabData)
-      if (state.bracketsByGroup && state.bracketsByGroup[groupId]) {
-        delete state.bracketsByGroup[groupId]
-        // selectedViewGroupId가 삭제된 그룹이면 null로 설정
-        if (state.selectedViewGroupId === groupId) {
-          state.selectedViewGroupId = null
-        }
-        localStorage.setItem('polygonTennis_bracketTab', JSON.stringify(state))
-      }
+    try {
+      await deleteGroupBracketFromRealtime(PATHS.BRACKET_TAB, 'default', groupId)
+    } catch (error) {
+      console.warn('Realtime Database 그룹 삭제 실패 (bracketTab):', error)
     }
     
     // 팀 랜덤 탭 데이터 삭제
-    const randomBracketTabData = localStorage.getItem('polygonTennis_randomBracketTab')
-    if (randomBracketTabData) {
-      const state = JSON.parse(randomBracketTabData)
-      if (state.bracketsByGroup && state.bracketsByGroup[groupId]) {
-        delete state.bracketsByGroup[groupId]
-        // selectedViewGroupId가 삭제된 그룹이면 null로 설정
-        if (state.selectedViewGroupId === groupId) {
-          state.selectedViewGroupId = null
-        }
-        localStorage.setItem('polygonTennis_randomBracketTab', JSON.stringify(state))
-      }
+    try {
+      await deleteGroupBracketFromRealtime(PATHS.RANDOM_BRACKET_TAB, 'default', groupId)
+    } catch (error) {
+      console.warn('Realtime Database 그룹 삭제 실패 (randomBracketTab):', error)
     }
     
     // 한울AA 탭 데이터 삭제
-    const kdkTabData = localStorage.getItem('polygonTennis_kdkTab')
-    if (kdkTabData) {
-      const state = JSON.parse(kdkTabData)
-      if (state.kdkMatchesByGroup && state.kdkMatchesByGroup[groupId]) {
-        delete state.kdkMatchesByGroup[groupId]
-        // selectedViewGroupId가 삭제된 그룹이면 null로 설정
-        if (state.selectedViewGroupId === groupId) {
-          state.selectedViewGroupId = null
-        }
-        localStorage.setItem('polygonTennis_kdkTab', JSON.stringify(state))
-      }
+    try {
+      await deleteGroupBracketFromRealtime(PATHS.KDK_TAB, 'default', groupId)
+    } catch (error) {
+      console.warn('Realtime Database 그룹 삭제 실패 (kdkTab):', error)
     }
     
-    // 한울AA 시드 데이터 삭제
-    localStorage.removeItem(`polygonTennis_kdkSeeds_${groupId}`)
-    
     // 풀리그 탭 데이터 삭제
-    const fullLeagueTabData = localStorage.getItem('polygonTennis_fullLeagueTab')
-    if (fullLeagueTabData) {
-      const state = JSON.parse(fullLeagueTabData)
-      if (state.leagueDataByGroup && state.leagueDataByGroup[groupId]) {
-        delete state.leagueDataByGroup[groupId]
-        // selectedViewGroupId가 삭제된 그룹이면 null로 설정
-        if (state.selectedViewGroupId === groupId) {
-          state.selectedViewGroupId = null
-        }
-        localStorage.setItem('polygonTennis_fullLeagueTab', JSON.stringify(state))
-      }
+    try {
+      await deleteGroupBracketFromRealtime(PATHS.FULL_LEAGUE_TAB, 'default', groupId)
+    } catch (error) {
+      console.warn('Realtime Database 그룹 삭제 실패 (fullLeagueTab):', error)
     }
   } catch (error) {
     console.error('그룹 대진표 데이터 삭제 실패:', error)

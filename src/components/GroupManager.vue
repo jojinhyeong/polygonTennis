@@ -32,7 +32,7 @@
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
                 <span>선수 목록</span>
-                <span class="player-count" v-if="group.players.length > 0">({{ group.players.length }})</span>
+                <span class="player-count" v-if="group.players && group.players.length > 0">({{ group.players.length }})</span>
                 <svg 
                   class="toggle-arrow" 
                   :class="{ 'expanded': isGroupExpanded(group.id) }"
@@ -58,7 +58,7 @@
             <div class="players-list" v-show="isGroupExpanded(group.id)">
               <transition-group name="player-list" tag="div">
                 <div
-                  v-for="(player, index) in group.players"
+                  v-for="(player, index) in (group.players || [])"
                   :key="index"
                   class="player-item"
                 >
@@ -82,7 +82,7 @@
                   </button>
                 </div>
               </transition-group>
-              <div v-if="group.players.length === 0" class="empty-state">
+              <div v-if="!group.players || group.players.length === 0" class="empty-state">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                   <circle cx="9" cy="7" r="4"></circle>
@@ -156,7 +156,7 @@ const addPlayer = (groupId) => {
   const group = props.groups.find(g => g.id === groupId)
   if (group) {
     // 새로운 배열을 생성하여 반응성 보장
-    const newPlayers = [...group.players, { name: '' }]
+    const newPlayers = [...(group.players || []), { name: '' }]
     emit('update-group', groupId, { players: newPlayers })
     // 선수 추가 시 토글이 닫혀있으면 자동으로 열기
     if (!isGroupExpanded(groupId)) {
@@ -169,16 +169,16 @@ const removePlayer = (groupId, playerIndex) => {
   const group = props.groups.find(g => g.id === groupId)
   if (group) {
     // 새로운 배열을 생성하여 반응성 보장
-    const newPlayers = group.players.filter((_, index) => index !== playerIndex)
+    const newPlayers = (group.players || []).filter((_, index) => index !== playerIndex)
     emit('update-group', groupId, { players: newPlayers })
   }
 }
 
 const updatePlayer = (groupId, playerIndex, name) => {
   const group = props.groups.find(g => g.id === groupId)
-  if (group && group.players[playerIndex]) {
+  if (group && group.players && group.players[playerIndex]) {
     // 새로운 배열을 생성하여 반응성 보장
-    const newPlayers = [...group.players]
+    const newPlayers = [...(group.players || [])]
     newPlayers[playerIndex] = { ...newPlayers[playerIndex], name }
     emit('update-group', groupId, { players: newPlayers })
   }

@@ -131,6 +131,7 @@ import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'
 import Tooltip from './Tooltip.vue'
+import { saveBracketToRealtime, loadBracketFromRealtime, PATHS } from '../firebase/realtimeService'
 
 const props = defineProps({
   groups: {
@@ -343,25 +344,38 @@ const generateRandomBracket = () => {
   showSuccessModal.value = true
 }
 
-// 로컬스토리지에 저장
-const saveRandomBracketTabState = () => {
+// Realtime Database에 저장
+const saveRandomBracketTabState = async () => {
   try {
     const state = {
       bracketsByGroup: Object.fromEntries(bracketsByGroup.value),
       selectedViewGroupId: selectedViewGroupId.value
     }
-    localStorage.setItem('polygonTennis_randomBracketTab', JSON.stringify(state))
+    
+    // Realtime Database에 저장
+    await saveBracketToRealtime(PATHS.RANDOM_BRACKET_TAB, 'default', state)
+    console.log('✅ Realtime Database에 랜덤 대진표 데이터 저장 완료')
   } catch (error) {
     console.error('팀랜덤 탭 데이터 저장 실패:', error)
   }
 }
 
-// 로컬스토리지에서 불러오기
-const loadRandomBracketTabState = () => {
+// Realtime Database에서 불러오기
+const loadRandomBracketTabState = async () => {
   try {
-    const saved = localStorage.getItem('polygonTennis_randomBracketTab')
-    if (saved) {
-      const state = JSON.parse(saved)
+    let state = null
+    
+    // Realtime Database에서 불러오기 시도
+    try {
+      const realtimeData = await loadBracketFromRealtime(PATHS.RANDOM_BRACKET_TAB, 'default')
+      if (realtimeData) {
+        state = realtimeData
+      }
+    } catch (realtimeError) {
+      console.warn('Realtime Database 불러오기 실패:', realtimeError)
+    }
+    
+    if (state) {
       if (state.bracketsByGroup) {
         // 실제로 존재하는 그룹만 필터링
         const validBrackets = new Map()

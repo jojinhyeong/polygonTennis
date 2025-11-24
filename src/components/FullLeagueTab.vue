@@ -458,6 +458,7 @@ import SelectInput from './SelectInput.vue'
 import BracketDisplay from './BracketDisplay.vue'
 import SuccessModal from './SuccessModal.vue'
 import Tooltip from './Tooltip.vue'
+import { saveBracketToRealtime, loadBracketFromRealtime, PATHS } from '../firebase/realtimeService'
 
 const props = defineProps({
   groups: {
@@ -1024,11 +1025,12 @@ const createFinalBracket = (advancingTeams) => {
   const teams = []
   for (let i = 0; i < bracketSize; i++) {
     if (i < advancingTeams.length) {
-      const teamNameParts = advancingTeams[i].teamName.split(' ')
+      // teamName은 \n으로 구분되어 있음
+      const teamNameParts = advancingTeams[i].teamName.split('\n')
       teams.push({
         id: i + 1,
-        player1: teamNameParts[0],
-        player2: teamNameParts[1],
+        player1: teamNameParts[0] || '',
+        player2: teamNameParts[1] || '',
         teamName: advancingTeams[i].teamName,
         groupName: getGroupLabel(selectedViewGroupId.value)
       })
@@ -1303,8 +1305,8 @@ const getParticleStyle = (fireworkIndex, particleIndex, total, baseDelay = 0) =>
   }
 }
 
-// 로컬스토리지 저장
-const saveLeagueData = () => {
+// Realtime Database 저장
+const saveLeagueData = async () => {
   try {
     const state = {
       leagueDataByGroup: Object.fromEntries(leagueDataByGroup.value),
@@ -1313,18 +1315,31 @@ const saveLeagueData = () => {
       selectedPlayers: selectedPlayers.value,
       selectedGroupId: selectedGroupId.value
     }
-    localStorage.setItem('polygonTennis_fullLeagueTab', JSON.stringify(state))
+    
+    // Realtime Database에 저장
+    await saveBracketToRealtime(PATHS.FULL_LEAGUE_TAB, 'default', state)
+    console.log('✅ Realtime Database에 풀리그 데이터 저장 완료')
   } catch (error) {
     console.error('풀리그 데이터 저장 실패:', error)
   }
 }
 
-// 로컬스토리지 불러오기
-const loadLeagueData = () => {
+// Realtime Database 불러오기
+const loadLeagueData = async () => {
   try {
-    const saved = localStorage.getItem('polygonTennis_fullLeagueTab')
-    if (saved) {
-      const state = JSON.parse(saved)
+    let state = null
+    
+    // Realtime Database에서 불러오기 시도
+    try {
+      const realtimeData = await loadBracketFromRealtime(PATHS.FULL_LEAGUE_TAB, 'default')
+      if (realtimeData) {
+        state = realtimeData
+      }
+    } catch (realtimeError) {
+      console.warn('Realtime Database 불러오기 실패:', realtimeError)
+    }
+    
+    if (state) {
       if (state.leagueDataByGroup) {
         const validData = new Map()
         Object.entries(state.leagueDataByGroup).forEach(([groupId, data]) => {
