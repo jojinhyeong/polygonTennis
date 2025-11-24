@@ -71,13 +71,28 @@
           </div>
         </div>
         <Tooltip text="한울AA 리그전 형식으로 대진표를 생성합니다. 시드를 선택하면 강자끼리 팀이 되지 않도록 배치됩니다" position="top">
-          <button class="generate-kdk-btn" @click="generateKDKBracket" :disabled="!selectedGroupId">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-            <span>한울AA 대진표 생성</span>
-          </button>
+          <div class="button-group">
+            <button class="generate-kdk-btn" @click="generateKDKBracket" :disabled="!selectedGroupId">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>한울AA 대진표 생성</span>
+            </button>
+            <button 
+              class="reset-btn" 
+              @click="resetBracket" 
+              :disabled="!canReset"
+              title="대진표 및 시드 초기화"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                <path d="M21 3v5h-5"></path>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                <path d="M3 21v-5h5"></path>
+              </svg>
+            </button>
+          </div>
         </Tooltip>
       </div>
     </div>
@@ -85,7 +100,7 @@
     <div v-if="kdkMatchesByGroup.size > 0" class="kdk-matches-container">
       <div class="group-tabs">
         <button
-          v-for="[groupId, matches] in Array.from(kdkMatchesByGroup.entries())"
+          v-for="[groupId, matches] in sortedGroupEntries"
           :key="groupId"
           :class="['group-tab', { active: selectedViewGroupId === groupId }]"
           @click="selectedViewGroupId = groupId"
@@ -310,6 +325,26 @@
       message="한울AA 대진표가 성공적으로 생성되었습니다."
       @close="showSuccessModal = false"
     />
+    
+    <!-- 대진표 초기화 확인 모달 -->
+    <div v-if="showResetConfirmModal" class="modal-overlay" @click="closeResetConfirmModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>대진표 초기화 확인</h3>
+        </div>
+        <div class="modal-body">
+          <p v-if="pendingReset">대진표를 초기화하시겠습니까?</p>
+          <template v-else>
+            <p>이 그룹에 이미 대진표가 있습니다.</p>
+            <p>기존 대진표를 초기화하고 새로 생성하시겠습니까?</p>
+          </template>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="closeResetConfirmModal">취소</button>
+          <button class="btn-confirm" @click="confirmResetBracket">예</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -318,7 +353,7 @@ import { ref, computed, defineProps, watch, onMounted } from 'vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'
 import Tooltip from './Tooltip.vue'
-import { saveBracketToRealtime, loadBracketFromRealtime, PATHS } from '../firebase/realtimeService'
+import { saveBracketToRealtime, loadBracketFromRealtime, deleteGroupBracketFromRealtime, PATHS } from '../firebase/realtimeService'
 
 const props = defineProps({
   groups: {
@@ -333,6 +368,10 @@ const selectedViewGroupId = ref(null)
 const resultsTab = ref('full') // 'full' 또는 'summary'
 const selectedSeeds = ref([]) // 시드로 선택된 선수들
 const showSuccessModal = ref(false)
+const showResetConfirmModal = ref(false)
+const pendingBracketGeneration = ref(null)
+const pendingReset = ref(null) // 초기화 함수를 저장
+const isChangingGroup = ref(false) // 그룹 변경 중 플래그
 
 // 인원수별 권장 시드 번호 (이미지 참고)
 const recommendedSeedIndices = {
@@ -372,6 +411,16 @@ const getGroupName = (groupId) => {
   const group = props.groups.find(g => g.id === groupId)
   return getGroupLabel(groupId)
 }
+
+// 그룹 탭을 A~Z 순서로 정렬
+const sortedGroupEntries = computed(() => {
+  const entries = Array.from(kdkMatchesByGroup.value.entries())
+  return entries.sort(([idA], [idB]) => {
+    const nameA = getGroupLabel(idA)
+    const nameB = getGroupLabel(idB)
+    return nameA.localeCompare(nameB, 'ko', { numeric: true })
+  })
+})
 
 // 그룹 ID를 알파벳 레이블로 변환 (1 -> A, 2 -> B, ... 26 -> Z)
 const getGroupLabel = (groupId) => {
@@ -414,16 +463,29 @@ const maxSeeds = computed(() => {
   return recommended ? recommended.length : Math.floor(playerCount / 2)
 })
 
+// 초기화 버튼 활성화 여부 (대진표 또는 시드가 있을 때)
+const canReset = computed(() => {
+  if (!selectedGroupId.value) return false
+  const groupId = Number(selectedGroupId.value)
+  const hasBracket = kdkMatchesByGroup.value?.has(groupId)
+  const hasSeeds = selectedSeeds.value && selectedSeeds.value.length > 0
+  return hasBracket || hasSeeds
+})
+
 // 시드 초기화
 const clearSeeds = () => {
   selectedSeeds.value = []
 }
 
 // 그룹 변경 시 시드 초기화
-watch(selectedGroupId, async () => {
+watch(selectedGroupId, async (newGroupId, oldGroupId) => {
+  if (newGroupId === oldGroupId) return
+  
+  isChangingGroup.value = true
   selectedSeeds.value = []
   // 그룹별 시드 정보 불러오기
-  await loadSeedsForGroup(selectedGroupId.value)
+  await loadSeedsForGroup(newGroupId)
+  isChangingGroup.value = false
 })
 
 // Realtime Database에 저장
@@ -435,25 +497,25 @@ const saveKDKTabState = async () => {
       seedsByGroup: {} // 그룹별 시드 정보 저장
     }
     
-    // 현재 선택된 그룹의 시드 정보 저장 (Realtime Database에 포함)
-    if (selectedGroupId.value && selectedSeeds.value && selectedSeeds.value.length > 0) {
-      state.seedsByGroup[selectedGroupId.value] = selectedSeeds.value
-    }
-    
-    // 기존에 저장된 다른 그룹의 시드 정보도 유지하기 위해 불러오기
+    // 기존에 저장된 모든 그룹의 시드 정보 불러오기
     try {
       const existingData = await loadBracketFromRealtime(PATHS.KDK_TAB, 'default')
       if (existingData && existingData.seedsByGroup) {
-        // 기존 시드 정보 병합 (현재 그룹 제외)
+        // 기존 시드 정보 모두 복사
         Object.keys(existingData.seedsByGroup).forEach(groupId => {
-          if (groupId != selectedGroupId.value) {
-            state.seedsByGroup[groupId] = existingData.seedsByGroup[groupId]
-          }
+          state.seedsByGroup[groupId] = existingData.seedsByGroup[groupId]
         })
       }
     } catch (error) {
       // 기존 데이터 불러오기 실패해도 계속 진행
       console.warn('기존 시드 정보 불러오기 실패:', error)
+    }
+    
+    // 현재 선택된 그룹의 시드 정보 저장 (기존 정보 위에 덮어쓰기)
+    if (selectedGroupId.value) {
+      const groupIdNum = typeof selectedGroupId.value === 'string' ? parseInt(selectedGroupId.value) : selectedGroupId.value
+      // 시드가 있으면 저장, 없으면 빈 배열로 저장 (시드 해제도 저장)
+      state.seedsByGroup[groupIdNum] = selectedSeeds.value || []
     }
     
     // Realtime Database에 저장
@@ -478,9 +540,17 @@ const loadSeedsForGroup = async (groupId) => {
     return
   }
   try {
+    const groupIdNum = typeof groupId === 'string' ? parseInt(groupId) : groupId
     const realtimeData = await loadBracketFromRealtime(PATHS.KDK_TAB, 'default')
-    if (realtimeData && realtimeData.seedsByGroup && realtimeData.seedsByGroup[groupId]) {
-      selectedSeeds.value = realtimeData.seedsByGroup[groupId]
+    if (realtimeData && realtimeData.seedsByGroup) {
+      // 숫자 키와 문자열 키 모두 확인
+      const seeds = realtimeData.seedsByGroup[groupIdNum] || realtimeData.seedsByGroup[String(groupIdNum)] || realtimeData.seedsByGroup[groupId]
+      if (seeds && Array.isArray(seeds)) {
+        selectedSeeds.value = seeds
+        console.log('✅ 그룹별 시드 정보 불러오기 완료:', groupIdNum, seeds)
+      } else {
+        selectedSeeds.value = []
+      }
     } else {
       selectedSeeds.value = []
     }
@@ -557,11 +627,17 @@ const loadKDKTabState = async () => {
           }
           
           if (groupIdToLoad) {
-            const groupSeeds = state.seedsByGroup[groupIdToLoad]
+            const groupIdNum = typeof groupIdToLoad === 'string' ? parseInt(groupIdToLoad) : groupIdToLoad
+            // 숫자 키와 문자열 키 모두 확인
+            const groupSeeds = state.seedsByGroup[groupIdNum] || state.seedsByGroup[String(groupIdNum)] || state.seedsByGroup[groupIdToLoad]
             if (groupSeeds && Array.isArray(groupSeeds)) {
               selectedSeeds.value = groupSeeds
-              console.log('✅ 시드 정보 복원 완료:', groupIdToLoad, groupSeeds)
+              console.log('✅ 시드 정보 복원 완료:', groupIdNum, groupSeeds)
+            } else {
+              selectedSeeds.value = []
             }
+          } else {
+            selectedSeeds.value = []
           }
         }
       }
@@ -582,9 +658,11 @@ watch(selectedViewGroupId, () => {
   saveKDKTabState()
 })
 
-// selectedSeeds 변경 시 저장
+// selectedSeeds 변경 시 저장 (그룹 변경 중이 아닐 때만)
 watch(selectedSeeds, () => {
-  saveSeedsForGroup(selectedGroupId.value)
+  if (!isChangingGroup.value && selectedGroupId.value) {
+    saveSeedsForGroup(selectedGroupId.value)
+  }
 }, { deep: true })
 
 // groups가 변경될 때 유효성 재검증
@@ -658,6 +736,21 @@ const generateKDKBracket = () => {
     return
   }
 
+  // 기존 대진표가 있는지 확인
+  if (kdkMatchesByGroup.value.has(group.id)) {
+    // 기존 대진표가 있으면 확인 모달 표시
+    pendingBracketGeneration.value = () => {
+      createKDKBracketInternal(group)
+    }
+    showResetConfirmModal.value = true
+    return
+  }
+
+  // 기존 대진표가 없으면 바로 생성
+  createKDKBracketInternal(group)
+}
+
+const createKDKBracketInternal = (group) => {
   const originalPlayers = group.players
     .filter(p => p.name && p.name.trim())
     .map(p => p.name)
@@ -837,11 +930,91 @@ const generateKDKBracket = () => {
   kdkMatchesByGroup.value.set(group.id, matches)
   selectedViewGroupId.value = group.id
   
-  // 로컬스토리지에 저장
+  // 저장
   saveKDKTabState()
   
   // 생성 완료 모달 표시
   showSuccessModal.value = true
+}
+
+const closeResetConfirmModal = () => {
+  showResetConfirmModal.value = false
+  pendingBracketGeneration.value = null
+  pendingReset.value = null
+}
+
+const confirmResetBracket = () => {
+  // 초기화 함수가 있으면 실행
+  if (pendingReset.value) {
+    pendingReset.value()
+    pendingReset.value = null
+    closeResetConfirmModal()
+    return
+  }
+  
+  // 대진표 생성 함수가 있으면 실행
+  if (pendingBracketGeneration.value) {
+    pendingBracketGeneration.value()
+    closeResetConfirmModal()
+  }
+}
+
+// 대진표 초기화 함수 (확인 모달 표시)
+const resetBracket = () => {
+  if (!selectedGroupId.value) return
+  
+  const groupId = Number(selectedGroupId.value)
+  // 대진표가 없어도 시드가 있으면 초기화 가능
+  const hasBracket = kdkMatchesByGroup.value?.has(groupId)
+  const hasSeeds = selectedSeeds.value && selectedSeeds.value.length > 0
+  
+  if (!hasBracket && !hasSeeds) return
+  
+  // 초기화 함수를 저장하고 모달 표시
+  pendingReset.value = resetBracketInternal
+  showResetConfirmModal.value = true
+}
+
+// 실제 초기화 실행 함수
+const resetBracketInternal = async () => {
+  if (!selectedGroupId.value) return
+  
+  const groupId = Number(selectedGroupId.value)
+  const hasBracket = kdkMatchesByGroup.value?.has(groupId)
+  const hasSeeds = selectedSeeds.value && selectedSeeds.value.length > 0
+  
+  if (!hasBracket && !hasSeeds) return
+  
+  try {
+    // 대진표가 있으면 삭제
+    if (hasBracket) {
+      // 로컬에서 삭제
+      kdkMatchesByGroup.value.delete(groupId)
+      
+      // selectedViewGroupId가 삭제된 그룹이면 null로 설정
+      if (selectedViewGroupId.value === groupId) {
+        selectedViewGroupId.value = null
+      }
+      
+      // Realtime Database에서 삭제
+      await deleteGroupBracketFromRealtime(PATHS.KDK_TAB, 'default', groupId)
+    }
+    
+    // 시드 초기화
+    if (hasSeeds) {
+      isChangingGroup.value = true
+      selectedSeeds.value = []
+      isChangingGroup.value = false
+    }
+    
+    // 저장
+    saveKDKTabState()
+    
+    console.log('✅ 대진표와 시드가 초기화되었습니다.')
+  } catch (error) {
+    console.error('❌ 초기화 실패:', error)
+    alert('초기화에 실패했습니다.')
+  }
 }
 
 const updateScore = (match) => {
@@ -1106,8 +1279,15 @@ const matchResults = computed(() => {
 }
 
 
-.generate-kdk-btn {
+.button-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
+}
+
+.generate-kdk-btn {
+  flex: 1;
   padding: 0.875rem 1.25rem;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
@@ -1154,6 +1334,37 @@ const matchResults = computed(() => {
 .generate-kdk-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.reset-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #f44336;
+  border-radius: 12px;
+  background: white;
+  color: #f44336;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
+.reset-btn:hover:not(:disabled) {
+  background: #f44336;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.reset-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: #ccc;
+  color: #ccc;
 }
 
 .kdk-matches-container {
@@ -2369,6 +2580,102 @@ const matchResults = computed(() => {
 @keyframes pulseRed {
   0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
   50% { box-shadow: 0 0 0 8px rgba(244, 67, 54, 0); }
+}
+
+/* 대진표 초기화 확인 모달 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 2rem;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: modalSlideUp 0.3s ease;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-body p {
+  margin: 0.5rem 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel,
+.btn-confirm {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>
 

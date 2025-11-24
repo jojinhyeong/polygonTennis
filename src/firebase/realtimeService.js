@@ -76,9 +76,15 @@ export const loadGroupsFromRealtime = async (userId = 'default') => {
       console.log('데이터 존재:', data)
       
       if (data.groups && Array.isArray(data.groups) && data.groups.length > 0) {
-        console.log('✅ Realtime Database에서 그룹 데이터를 불러왔습니다:', data.groups.length, '개 그룹')
+        // 각 그룹의 players 배열이 없거나 null/undefined인 경우 빈 배열로 초기화
+        const normalizedGroups = data.groups.map(group => ({
+          ...group,
+          players: Array.isArray(group.players) ? group.players : (group.players || [])
+        }))
+        console.log('✅ Realtime Database에서 그룹 데이터를 불러왔습니다:', normalizedGroups.length, '개 그룹')
+        console.log('정규화된 그룹 데이터:', normalizedGroups)
         console.log('=== Realtime Database 불러오기 완료 ===')
-        return data.groups
+        return normalizedGroups
       } else {
         console.log('⚠️ groups 배열이 없거나 비어있습니다.')
       }

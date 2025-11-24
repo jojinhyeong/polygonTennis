@@ -29,13 +29,28 @@
           />
         </div>
         <Tooltip text="그룹의 선수들을 랜덤으로 팀을 구성하여 대진표를 생성합니다" position="top">
-          <button class="generate-random-btn" @click="generateRandomBracket" :disabled="!selectedGroupId">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="16 18 22 12 16 6"></polyline>
-              <polyline points="8 6 2 12 8 18"></polyline>
-            </svg>
-            <span>랜덤 대진 생성</span>
-          </button>
+          <div class="button-group">
+            <button class="generate-random-btn" @click="generateRandomBracket" :disabled="!selectedGroupId">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              <span>랜덤 대진 생성</span>
+            </button>
+            <button 
+              class="reset-btn" 
+              @click="resetBracket" 
+              :disabled="!selectedGroupId"
+              title="대진표 초기화"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                <path d="M21 3v5h-5"></path>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                <path d="M3 21v-5h5"></path>
+              </svg>
+            </button>
+          </div>
         </Tooltip>
       </div>
     </div>
@@ -43,7 +58,7 @@
     <div v-if="bracketsByGroup.size > 0" class="brackets-container">
       <div class="group-tabs">
         <button
-          v-for="[groupId, bracket] in Array.from(bracketsByGroup.entries()).filter(([id]) => id !== 'all')"
+          v-for="[groupId, bracket] in sortedGroupEntries"
           :key="groupId"
           :class="['group-tab', { active: selectedViewGroupId === groupId }]"
           @click="selectedViewGroupId = groupId"
@@ -122,6 +137,26 @@
       message="랜덤 대진표가 성공적으로 생성되었습니다."
       @close="showSuccessModal = false"
     />
+    
+    <!-- 대진표 초기화 확인 모달 -->
+    <div v-if="showResetConfirmModal" class="modal-overlay" @click="closeResetConfirmModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>대진표 초기화 확인</h3>
+        </div>
+        <div class="modal-body">
+          <p v-if="pendingReset">대진표를 초기화하시겠습니까?</p>
+          <template v-else>
+            <p>이 그룹에 이미 대진표가 있습니다.</p>
+            <p>기존 대진표를 초기화하고 새로 생성하시겠습니까?</p>
+          </template>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="closeResetConfirmModal">취소</button>
+          <button class="btn-confirm" @click="confirmResetBracket">예</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -131,7 +166,7 @@ import BracketDisplay from './BracketDisplay.vue'
 import SelectInput from './SelectInput.vue'
 import SuccessModal from './SuccessModal.vue'
 import Tooltip from './Tooltip.vue'
-import { saveBracketToRealtime, loadBracketFromRealtime, PATHS } from '../firebase/realtimeService'
+import { saveBracketToRealtime, loadBracketFromRealtime, deleteGroupBracketFromRealtime, PATHS } from '../firebase/realtimeService'
 
 const props = defineProps({
   groups: {
@@ -150,12 +185,25 @@ const showWinnerModal = ref(false)
 const championWinner = ref('')
 const lastChampionWinner = ref('') // 마지막으로 표시한 우승자 추적
 const showSuccessModal = ref(false)
+const showResetConfirmModal = ref(false)
+const pendingBracketGeneration = ref(null)
+const pendingReset = ref(null) // 초기화 함수를 저장
 
 const getGroupName = (groupId) => {
   if (groupId === 'all') return '전체'
   const group = props.groups.find(g => g.id === groupId)
   return getGroupLabel(groupId)
 }
+
+// 그룹 탭을 A~Z 순서로 정렬
+const sortedGroupEntries = computed(() => {
+  const entries = Array.from(bracketsByGroup.value.entries()).filter(([id]) => id !== 'all')
+  return entries.sort(([idA], [idB]) => {
+    const nameA = getGroupLabel(idA)
+    const nameB = getGroupLabel(idB)
+    return nameA.localeCompare(nameB, 'ko', { numeric: true })
+  })
+})
 
 // 그룹 ID를 알파벳 레이블로 변환 (1 -> A, 2 -> B, ... 26 -> Z)
 const getGroupLabel = (groupId) => {
@@ -325,23 +373,101 @@ const generateRandomBracket = () => {
     return
   }
 
+  // 기존 대진표가 있는지 확인
+  if (bracketsByGroup.value.has(group.id)) {
+    // 기존 대진표가 있으면 확인 모달 표시
+    pendingBracketGeneration.value = () => {
+      createRandomBracketInternal(group, players)
+    }
+    showResetConfirmModal.value = true
+    return
+  }
+
+  // 기존 대진표가 없으면 바로 생성
+  createRandomBracketInternal(group, players)
+}
+
+const createRandomBracketInternal = (group, players) => {
   // 선수 순서를 랜덤하게 섞기
   players = shuffleArray([...players])
 
-  // 기존 대진표를 유지하고 새 그룹만 추가
+  // 대진표 생성
   const bracket = createDoubleBracket(players)
   bracketsByGroup.value.set(group.id, bracket)
   
   // 새로 생성한 그룹을 선택
   selectedViewGroupId.value = group.id
 
-  // 로컬스토리지에 저장
+  // 저장
   saveRandomBracketTabState()
 
   emit('generate-random', Array.from(bracketsByGroup.value.values()))
   
   // 생성 완료 모달 표시
   showSuccessModal.value = true
+}
+
+const closeResetConfirmModal = () => {
+  showResetConfirmModal.value = false
+  pendingBracketGeneration.value = null
+  pendingReset.value = null
+}
+
+const confirmResetBracket = () => {
+  // 초기화 함수가 있으면 실행
+  if (pendingReset.value) {
+    pendingReset.value()
+    pendingReset.value = null
+    closeResetConfirmModal()
+    return
+  }
+  
+  // 대진표 생성 함수가 있으면 실행
+  if (pendingBracketGeneration.value) {
+    pendingBracketGeneration.value()
+    closeResetConfirmModal()
+  }
+}
+
+// 대진표 초기화 함수 (확인 모달 표시)
+const resetBracket = () => {
+  if (!selectedGroupId.value) return
+  
+  const groupId = Number(selectedGroupId.value)
+  if (!bracketsByGroup.value?.has(groupId)) return
+  
+  // 초기화 함수를 저장하고 모달 표시
+  pendingReset.value = resetBracketInternal
+  showResetConfirmModal.value = true
+}
+
+// 실제 초기화 실행 함수
+const resetBracketInternal = async () => {
+  if (!selectedGroupId.value) return
+  
+  const groupId = Number(selectedGroupId.value)
+  if (!bracketsByGroup.value?.has(groupId)) return
+  
+  try {
+    // 로컬에서 삭제
+    bracketsByGroup.value.delete(groupId)
+    
+    // selectedViewGroupId가 삭제된 그룹이면 null로 설정
+    if (selectedViewGroupId.value === groupId) {
+      selectedViewGroupId.value = null
+    }
+    
+    // Realtime Database에서 삭제
+    await deleteGroupBracketFromRealtime(PATHS.RANDOM_BRACKET_TAB, 'default', groupId)
+    
+    // 저장
+    saveRandomBracketTabState()
+    
+    console.log('✅ 대진표가 초기화되었습니다.')
+  } catch (error) {
+    console.error('❌ 대진표 초기화 실패:', error)
+    alert('대진표 초기화에 실패했습니다.')
+  }
 }
 
 // Realtime Database에 저장
@@ -651,25 +777,30 @@ const createDoubleBracket = (players) => {
 }
 
 
+.button-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
 .generate-random-btn {
+  flex: 1;
   padding: 0.875rem 1.25rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 12px;
   background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
   color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-  font-family: 'Inter', 'Noto Sans KR', sans-serif;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
   position: relative;
   overflow: hidden;
 }
@@ -694,13 +825,44 @@ const createDoubleBracket = (players) => {
   box-shadow: 0 8px 24px rgba(76, 175, 80, 0.45);
 }
 
+.generate-random-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(1);
+}
+
 .generate-random-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.generate-random-btn:active {
-  transform: translateY(-1px) scale(1);
+.reset-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #f44336;
+  border-radius: 12px;
+  background: white;
+  color: #f44336;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.2);
+}
+
+.reset-btn:hover:not(:disabled) {
+  background: #f44336;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.reset-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: #ccc;
+  color: #ccc;
 }
 
 .brackets-container {
@@ -1209,5 +1371,101 @@ const createDoubleBracket = (players) => {
 
 .winner-close-btn:active {
   transform: translateY(0);
+}
+
+/* 대진표 초기화 확인 모달 스타일 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 2rem;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: modalSlideUp 0.3s ease;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-body p {
+  margin: 0.5rem 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-cancel,
+.btn-confirm {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-confirm:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>

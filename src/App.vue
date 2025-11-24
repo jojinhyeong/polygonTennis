@@ -46,6 +46,14 @@
               <span>선수 일괄 추가</span>
             </button>
           </Tooltip>
+          <button class="save-groups-btn" @click="saveGroupsManually" title="그룹 데이터 저장">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>저장</span>
+          </button>
         </div>
 
         <Transition name="fade-slide" mode="out-in">
@@ -767,12 +775,12 @@ const groups = ref([
   }
 ])
 
-// 그룹이 변경될 때마다 자동 저장 (비어있는 선수 제거는 하지 않음)
-watch(groups, () => {
-  if (!isSaving && !isRemovingEmpty) {
-    saveGroupsToStorage(true) // skipRemoveEmpty = true
-  }
-}, { deep: true })
+// 그룹이 변경될 때마다 자동 저장하지 않음 (저장 버튼으로만 저장)
+// watch(groups, () => {
+//   if (!isSaving && !isRemovingEmpty) {
+//     saveGroupsToStorage(true) // skipRemoveEmpty = true
+//   }
+// }, { deep: true })
 
 // 탭 변경 시 비어있는 선수 제거
 watch(activeTab, () => {
@@ -880,8 +888,7 @@ const addGroup = () => {
     name: `그룹 ${newGroupId}`,
     players: []
   })
-  // watch가 자동으로 저장하지만, 명시적으로도 저장 (비어있는 선수 제거는 하지 않음)
-  saveGroupsToStorage(true)
+  // 자동 저장하지 않음 (저장 버튼으로만 저장)
 }
 
 const removeGroup = (groupId) => {
@@ -890,8 +897,7 @@ const removeGroup = (groupId) => {
     removeGroupBracketData(groupId)
     
     groups.value = groups.value.filter(g => g.id !== groupId)
-    // watch가 자동으로 저장하지만, 명시적으로도 저장 (비어있는 선수 제거는 하지 않음)
-    saveGroupsToStorage(true)
+    // 자동 저장하지 않음 (저장 버튼으로만 저장)
   } else {
     alert('최소 1개의 그룹이 필요합니다.')
   }
@@ -937,8 +943,23 @@ const updateGroup = (groupId, updatedGroup) => {
   if (index !== -1) {
     // players 업데이트 시 비어있는 선수는 제거하지 않음 (탭 이동 시에만 제거)
     groups.value[index] = { ...groups.value[index], ...updatedGroup }
-    // watch가 자동으로 저장하지만, 명시적으로도 저장 (비어있는 선수 제거는 하지 않음)
-    saveGroupsToStorage(true)
+    // 자동 저장하지 않음 (저장 버튼으로만 저장)
+  }
+}
+
+// 수동 저장 함수
+const saveGroupsManually = async () => {
+  try {
+    // 비어있는 선수 제거 후 저장
+    isRemovingEmpty = true
+    removeEmptyPlayers()
+    isRemovingEmpty = false
+    
+    await saveGroupsToStorage(true)
+    alert('그룹 데이터가 저장되었습니다.')
+  } catch (error) {
+    console.error('저장 실패:', error)
+    alert('저장에 실패했습니다. 콘솔을 확인해주세요.')
   }
 }
 
@@ -1247,6 +1268,46 @@ const generateRandomBracket = (bracketData) => {
 }
 
 .guide-btn span {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.save-groups-btn {
+  width: auto;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+}
+
+.save-groups-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(255, 152, 0, 0.4);
+}
+
+.save-groups-btn:active {
+  transform: translateY(0);
+}
+
+.save-groups-btn svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.save-groups-btn span {
   display: flex;
   align-items: center;
   line-height: 1;
@@ -2254,6 +2315,16 @@ const generateRandomBracket = (bracketData) => {
     padding: 0.625rem 1rem;
     font-size: 0.75rem;
     min-height: 40px;
+  }
+
+  .save-groups-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.75rem;
+    min-height: 40px;
+  }
+
+  .save-groups-btn span {
+    display: inline;
   }
 }
 </style>
