@@ -78,17 +78,20 @@
           <RandomBracketTab
             v-else-if="activeTab === 'random'"
             :groups="groups"
+            @show-guide="showRandomGuideModal = true"
             @generate-random="generateRandomBracket"
             key="random"
           />
           <KDKTab
             v-else-if="activeTab === 'kdk'"
             :groups="groups"
+            @show-guide="showKDKGuideModal = true"
             key="kdk"
           />
           <FullLeagueTab
             v-else-if="activeTab === 'fullleague'"
             :groups="groups"
+            @show-guide="showFullLeagueGuideModal = true"
             key="fullleague"
           />
         </Transition>
@@ -241,6 +244,195 @@
                 <span>다시 보지 않기</span>
               </label>
               <button class="guide-close-btn" @click="closeBracketGuideModal">
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 팀 랜덤 사용 가이드 모달 -->
+      <div v-if="showRandomGuideModal" class="modal-overlay" @click.self="closeRandomGuideModal">
+        <div class="modal-content guide-modal">
+          <div class="modal-header">
+            <h3>팀 랜덤 사용 가이드</h3>
+            <button class="modal-close-btn" @click="closeRandomGuideModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body guide-body">
+            <div class="guide-section">
+              <div class="guide-step">
+                <div class="guide-step-number">1</div>
+                <div class="guide-step-content">
+                  <h4>그룹 선택</h4>
+                  <p>먼저 선수를 추가한 그룹을 선택합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">2</div>
+                <div class="guide-step-content">
+                  <h4>랜덤 대진 생성</h4>
+                  <p>"랜덤 대진 생성" 버튼을 클릭하면 그룹의 선수들이 <strong>랜덤으로</strong> 2명씩 팀을 구성하여 대진표가 생성됩니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">3</div>
+                <div class="guide-step-content">
+                  <h4>팀 수 제한</h4>
+                  <p>토너먼트를 위해 팀 수는 <strong>2, 4, 8, 16...</strong> (2의 거듭제곱)이어야 합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">4</div>
+                <div class="guide-step-content">
+                  <h4>대진표 확인</h4>
+                  <p>생성된 대진표에서 경기 결과를 입력하고 우승자를 확인할 수 있습니다.</p>
+                </div>
+              </div>
+            </div>
+            <div class="guide-footer">
+              <label class="guide-checkbox">
+                <input type="checkbox" v-model="dontShowRandomGuideAgain" />
+                <span>다시 보지 않기</span>
+              </label>
+              <button class="guide-close-btn" @click="closeRandomGuideModal">
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 한울AA 사용 가이드 모달 -->
+      <div v-if="showKDKGuideModal" class="modal-overlay" @click.self="closeKDKGuideModal">
+        <div class="modal-content guide-modal">
+          <div class="modal-header">
+            <h3>한울AA 사용 가이드</h3>
+            <button class="modal-close-btn" @click="closeKDKGuideModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body guide-body">
+            <div class="guide-section">
+              <div class="guide-step">
+                <div class="guide-step-number">1</div>
+                <div class="guide-step-content">
+                  <h4>그룹 선택</h4>
+                  <p>먼저 선수를 추가한 그룹을 선택합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">2</div>
+                <div class="guide-step-content">
+                  <h4>시드 선택 (선택사항)</h4>
+                  <p>강자끼리 팀이 되지 않도록 시드를 선택할 수 있습니다. 실력 차이가 나는 소수의 선수끼리 파트너가 되는 경우를 피하고 싶을 때 사용합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">3</div>
+                <div class="guide-step-content">
+                  <h4>대진표 생성</h4>
+                  <p>"한울AA 대진표 생성" 버튼을 클릭하면 한울AA 리그전 대진표가 생성됩니다. 한울AA는 모든 선수가 4경기를 진행하는 방식입니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">4</div>
+                <div class="guide-step-content">
+                  <h4>경기 진행</h4>
+                  <p>생성된 대진표에서 경기 결과를 입력하고 최종 순위를 확인할 수 있습니다.</p>
+                </div>
+              </div>
+            </div>
+            <div class="guide-footer">
+              <label class="guide-checkbox">
+                <input type="checkbox" v-model="dontShowKDKGuideAgain" />
+                <span>다시 보지 않기</span>
+              </label>
+              <button class="guide-close-btn" @click="closeKDKGuideModal">
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 풀리그 사용 가이드 모달 -->
+      <div v-if="showFullLeagueGuideModal" class="modal-overlay" @click.self="closeFullLeagueGuideModal">
+        <div class="modal-content guide-modal">
+          <div class="modal-header">
+            <h3>풀리그 사용 가이드</h3>
+            <button class="modal-close-btn" @click="closeFullLeagueGuideModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body guide-body">
+            <div class="guide-section">
+              <div class="guide-step">
+                <div class="guide-step-number">1</div>
+                <div class="guide-step-content">
+                  <h4>그룹 선택</h4>
+                  <p>먼저 선수를 추가한 그룹을 선택합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">2</div>
+                <div class="guide-step-content">
+                  <h4>팀 구성하기</h4>
+                  <p>"팀 구성하기" 버튼을 클릭하면 선수 선택 화면이 열립니다. <strong>짝수명</strong>만 선택 가능합니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">3</div>
+                <div class="guide-step-content">
+                  <h4>선수 선택</h4>
+                  <p>선수 목록에서 풀리그에 참가할 선수들을 <strong>순서대로</strong> 선택합니다. 선택한 순서대로 2명씩 팀이 구성됩니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">4</div>
+                <div class="guide-step-content">
+                  <h4>예선 경기수 선택</h4>
+                  <p>선수 선택 후 예선 리그에서 각 팀이 진행할 경기 수를 선택합니다. 경기 수는 팀 수에 따라 자동으로 계산되며, 원하는 경기 수를 선택할 수 있습니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">5</div>
+                <div class="guide-step-content">
+                  <h4>풀리그 생성</h4>
+                  <p>"풀리그 생성" 버튼을 클릭하면 선택한 경기 수에 따라 모든 팀이 서로 경기하는 풀리그 대진표가 생성됩니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">6</div>
+                <div class="guide-step-content">
+                  <h4>예선 경기 진행</h4>
+                  <p>생성된 예선 리그 대진표에서 경기 결과를 입력하고 순위를 확인할 수 있습니다.</p>
+                </div>
+              </div>
+              <div class="guide-step">
+                <div class="guide-step-number">7</div>
+                <div class="guide-step-content">
+                  <h4>본선 토너먼트</h4>
+                  <p>예선 리그의 모든 경기가 완료되면, 상단의 "본선 토너먼트" 탭이 활성화됩니다. 본선 토너먼트에서는 예선 순위에 따라 토너먼트 대진표가 자동으로 생성되어 우승자를 결정합니다.</p>
+                </div>
+              </div>
+            </div>
+            <div class="guide-footer">
+              <label class="guide-checkbox">
+                <input type="checkbox" v-model="dontShowFullLeagueGuideAgain" />
+                <span>다시 보지 않기</span>
+              </label>
+              <button class="guide-close-btn" @click="closeFullLeagueGuideModal">
                 확인
               </button>
             </div>
@@ -421,6 +613,9 @@ const showGroupSelectModal = ref(false)
 const showBulkAddModal = ref(false)
 const showGuideModal = ref(false)
 const showBracketGuideModal = ref(false)
+const showRandomGuideModal = ref(false)
+const showKDKGuideModal = ref(false)
+const showFullLeagueGuideModal = ref(false)
 const showTeamSelectModal = ref(false)
 const bracketTabRef = ref(null)
 const selectedGroupId = ref(null)
@@ -428,6 +623,9 @@ const selectedPlayers = ref([])
 const showScrollToTop = ref(false)
 const dontShowAgain = ref(false)
 const dontShowBracketGuideAgain = ref(false)
+const dontShowRandomGuideAgain = ref(false)
+const dontShowKDKGuideAgain = ref(false)
+const dontShowFullLeagueGuideAgain = ref(false)
 const teamSelectGroupId = ref(null)
 
 // 제공된 선수 목록
@@ -523,6 +721,30 @@ const closeBracketGuideModal = () => {
     localStorage.setItem('polygonTennis_bracketGuideShown', 'true')
   }
   dontShowBracketGuideAgain.value = false
+}
+
+const closeRandomGuideModal = () => {
+  showRandomGuideModal.value = false
+  if (dontShowRandomGuideAgain.value) {
+    localStorage.setItem('polygonTennis_randomGuideShown', 'true')
+  }
+  dontShowRandomGuideAgain.value = false
+}
+
+const closeKDKGuideModal = () => {
+  showKDKGuideModal.value = false
+  if (dontShowKDKGuideAgain.value) {
+    localStorage.setItem('polygonTennis_kdkGuideShown', 'true')
+  }
+  dontShowKDKGuideAgain.value = false
+}
+
+const closeFullLeagueGuideModal = () => {
+  showFullLeagueGuideModal.value = false
+  if (dontShowFullLeagueGuideAgain.value) {
+    localStorage.setItem('polygonTennis_fullLeagueGuideShown', 'true')
+  }
+  dontShowFullLeagueGuideAgain.value = false
 }
 
 const handleOpenTeamSelect = (groupId) => {
@@ -809,6 +1031,27 @@ watch(activeTab, () => {
           showBracketGuideModal.value = true
         }, 500)
       }
+    } else if (activeTab.value === 'random') {
+      const randomGuideShown = localStorage.getItem('polygonTennis_randomGuideShown')
+      if (!randomGuideShown) {
+        setTimeout(() => {
+          showRandomGuideModal.value = true
+        }, 500)
+      }
+    } else if (activeTab.value === 'kdk') {
+      const kdkGuideShown = localStorage.getItem('polygonTennis_kdkGuideShown')
+      if (!kdkGuideShown) {
+        setTimeout(() => {
+          showKDKGuideModal.value = true
+        }, 500)
+      }
+    } else if (activeTab.value === 'fullleague') {
+      const fullLeagueGuideShown = localStorage.getItem('polygonTennis_fullLeagueGuideShown')
+      if (!fullLeagueGuideShown) {
+        setTimeout(() => {
+          showFullLeagueGuideModal.value = true
+        }, 500)
+      }
     }
   })
 })
@@ -870,6 +1113,30 @@ onMounted(async () => {
   if (!bracketGuideShown && activeTab.value === 'bracket') {
     setTimeout(() => {
       showBracketGuideModal.value = true
+    }, 500)
+  }
+  
+  // 팀 랜덤 탭 첫 사용자 체크
+  const randomGuideShown = localStorage.getItem('polygonTennis_randomGuideShown')
+  if (!randomGuideShown && activeTab.value === 'random') {
+    setTimeout(() => {
+      showRandomGuideModal.value = true
+    }, 500)
+  }
+  
+  // 한울AA 탭 첫 사용자 체크
+  const kdkGuideShown = localStorage.getItem('polygonTennis_kdkGuideShown')
+  if (!kdkGuideShown && activeTab.value === 'kdk') {
+    setTimeout(() => {
+      showKDKGuideModal.value = true
+    }, 500)
+  }
+  
+  // 풀리그 탭 첫 사용자 체크
+  const fullLeagueGuideShown = localStorage.getItem('polygonTennis_fullLeagueGuideShown')
+  if (!fullLeagueGuideShown && activeTab.value === 'fullleague') {
+    setTimeout(() => {
+      showFullLeagueGuideModal.value = true
     }, 500)
   }
 })

@@ -8,6 +8,14 @@
           </svg>
         </div>
         <h2 class="controls-title">풀리그</h2>
+        <button class="guide-btn" @click="$emit('show-guide')" title="풀리그 사용 방법을 확인하세요">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" fill="white" stroke="#2196F3" stroke-width="2"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17" stroke="#2196F3" stroke-width="2" stroke-linecap="round"></line>
+          </svg>
+          <span>사용법</span>
+        </button>
       </div>
       <div class="controls-body">
         <div class="control-group">
@@ -501,6 +509,8 @@ const props = defineProps({
     required: true
   }
 })
+
+const emit = defineEmits(['show-guide'])
 
 const selectedGroupId = ref('')
 const selectedPlayers = ref([])
@@ -1596,6 +1606,7 @@ onMounted(() => {
 .controls-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1rem;
   padding-bottom: 0.875rem;
@@ -3210,6 +3221,58 @@ onMounted(() => {
 .btn-confirm:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.guide-btn {
+  width: auto;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2196F3 0%, #42A5F5 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.guide-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(33, 150, 243, 0.4);
+}
+
+.guide-btn:active {
+  transform: translateY(0);
+}
+
+.guide-btn svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-btn span {
+  display: flex;
+  align-items: center;
+  line-height: 1;
 }
 
 @keyframes fadeIn {
