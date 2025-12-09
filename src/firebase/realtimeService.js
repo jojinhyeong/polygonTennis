@@ -105,25 +105,20 @@ export const loadGroupsFromRealtime = async (userId = 'default') => {
 
 /**
  * Realtime Database 연결 테스트
+ * 실제 사용하는 경로를 읽어서 연결을 확인합니다
  * @returns {Promise<boolean>}
  */
 export const testRealtimeConnection = async () => {
   try {
     console.log('=== Realtime Database 연결 테스트 시작 ===')
-    const testRef = ref(db, 'test/connection')
+    // 실제 사용하는 경로를 읽어서 연결 확인 (쓰기 권한 없어도 읽기로 확인 가능)
+    const testRef = ref(db, `${PATHS.GROUPS}/default`)
     console.log('테스트 경로:', testRef.toString())
     
-    console.log('테스트 데이터 저장 시도...')
-    await set(testRef, {
-      test: true,
-      timestamp: Date.now()
-    })
-    console.log('✅ Realtime Database 연결 성공 - 테스트 데이터 저장 완료')
-    
-    // 테스트 데이터 삭제
-    console.log('테스트 데이터 삭제 시도...')
-    await remove(testRef)
-    console.log('테스트 데이터 삭제 완료')
+    console.log('데이터 읽기 시도...')
+    const snapshot = await get(testRef)
+    console.log('✅ Realtime Database 연결 성공 - 데이터 읽기 완료')
+    console.log('데이터 존재 여부:', snapshot.exists())
     console.log('=== Realtime Database 연결 테스트 완료 ===')
     return true
   } catch (error) {
